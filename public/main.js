@@ -110,13 +110,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             try {
-                const response = await fetch(apiEndpoint, {
-                    method: requestMethod,
+                const response = await fetch(`/api/users/${userId}`, { // или '/api/users/' + userId
+                    method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(formData)
+                    body: JSON.stringify(data)
+                })
                 });
 
                 const result = await response.json();
