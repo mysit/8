@@ -8,10 +8,10 @@ class User {
 
     public function __construct() {
         // Укажи здесь свои доступы к БД, если они отличаются
-        $host = 'localhost';
-        $dbname = 'web_project';
-        $username = 'root';
-        $password = '';
+       $user = 'u82196';
+$pass = '4736526';
+$db_name = 'u82196';
+$host = 'localhost';
         
         $this->db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
