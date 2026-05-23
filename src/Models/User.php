@@ -7,7 +7,6 @@ class User {
     private PDO $db;
 
     public function __construct() {
-        // Укажи здесь свои доступы к БД, если они отличаются
        $user = 'u82196';
 $pass = '4736526';
 $db_name = 'u82196';
@@ -47,7 +46,6 @@ $host = 'localhost';
     }
 
     public function update(int $id, array $data): bool {
-        // По ТЗ логин и пароль авторизованного пользователя менять НЕЛЬЗЯ
         $stmt = $this->db->prepare("
             UPDATE users 
             SET full_name = :full_name, 
