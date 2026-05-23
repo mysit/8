@@ -30,10 +30,9 @@ class User {
         $login = 'user_' . rand(1000, 9999);
         $pass = rand(100000, 999999);
 
-        // ПРОБУЕМ ДЕФОЛТНОЕ ДЛЯ ЛАБ КУБГУ: fio
-        $stmt = $this->pdo->prepare("INSERT INTO users (full_name, email, phone, organization, message, login, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $this->pdo->prepare("INSERT INTO users (fio, email, phone, organization, message, login, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
-            $data['fullName'] ?? '', // Из формы забираем fullName
+            $data['fullName'] ?? '',
             $data['email'] ?? '',
             $data['phone'] ?? '',
             $data['organization'] ?? '',
@@ -42,16 +41,27 @@ class User {
             $pass
         ]);
 
+        $id = $this->pdo->lastInsertId();
+
+        // ПОДСТРАХОВКА: если база не вернула ID или он равен 0, находим юзера по уникальному логину
+        if (!$id || (int)$id === 0) {
+            $checkStmt = $this->pdo->prepare("SELECT id FROM users WHERE login = ?");
+            $checkStmt->execute([$login]);
+            $fetched = $checkStmt->fetch();
+            if ($fetched) {
+                $id = $fetched['id'];
+            }
+        }
+
         return [
-            'id' => $this->pdo->lastInsertId(),
+            'id' => $id,
             'login' => $login,
             'password' => $pass
         ];
     }
 
     public function update($id, $data) {
-        // ПРОБУЕМ ДЕФОЛТНОЕ ДЛЯ ЛАБ КУБГУ: fio
-        $stmt = $this->pdo->prepare("UPDATE users SET full_name = ?, email = ?, phone = ?, organization = ?, message = ? WHERE id = ?");
+        $stmt = $this->pdo->prepare("UPDATE users SET fio = ?, email = ?, phone = ?, organization = ?, message = ? WHERE id = ?");
         $stmt->execute([
             $data['fullName'] ?? '', 
             $data['email'] ?? '',
