@@ -6,10 +6,9 @@ unset($_SESSION['form_errors'], $_SESSION['old_data']);
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <base href="/8/public/">
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="<?= $scriptName ?? '/8/public' ?>/css/style.css">
-    <title>Форма обратной связи</title>
+    <title>Страница</title>
+    <link rel="stylesheet" href="/8/public/css/style.css">
 </head>
 <body>
     <div class="main_screen">
@@ -63,6 +62,6 @@ unset($_SESSION['form_errors'], $_SESSION['old_data']);
             <button type="submit" id="submit_form" class="form_btn">отправить форму</button>
         </form>
     </div>
-    <script src="<?= $scriptName ?? '/8/public' ?>/js/main.js"></script>
+    <script src="/8/public/js/main.js"></script>
 </body>
 </html>
