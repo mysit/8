@@ -18,7 +18,7 @@ unset($_SESSION['form_errors']);
     <base href="/8/public/">
     <meta charset="UTF-8">
     <title>Регистрация</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="<?= $scriptName ?? '/8/public' ?>/css/style.css">
 </head>
 <body>
     <div style="max-width: 600px; margin: 40px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
@@ -89,6 +89,6 @@ unset($_SESSION['form_errors']);
         <p style="margin-top:20px;"><a href="/">На главную форму</a></p>
     </div>
 
-    <script src="/main.js"></script>
+    <script src="<?= $scriptName ?? '/8/public' ?>/js/main.js"></script>
 </body>
 </html>
