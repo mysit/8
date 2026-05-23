@@ -111,18 +111,24 @@ if (preg_match('/^\/api\/users\/(\d+)$/', $requestUri, $matches) && $requestMeth
 
 // --- МАРШРУТЫ ДЛЯ FALLBACK-РЕЖИМА (БЕЗ JS) ---
 
+// --- МАРШРУТЫ ДЛЯ FALLBACK-РЕЖИМА (БЕЗ JS) ---
+
 // 3. Синхронная обработка POST /register-fallback (без JS)
 if ($requestUri === '/register-fallback' && $requestMethod === 'POST') {
     $errors = Validator::validate($inputData);
     if (!empty($errors)) {
         $_SESSION['form_errors'] = $errors;
         $_SESSION['old_data'] = $inputData;
-        
-        // БЫЛО: header('Location: ' . $scriptName . '/');
-        // ДОЛЖНО СТАТЬ:
         header('Location: /8/public/'); 
         exit;
     }
+
+    // Вот эти строчки потерялись при прошлой вставке:
+    $newUser = $userModel->create($inputData);
+    $_SESSION['user_id'] = $newUser['id'];
+    $_SESSION['just_registered'] = $newUser;
+    header('Location: /8/public/profile?id=' . $newUser['id']);
+    exit;
 }
 
 // 4. Синхронная обработка PUT /update-fallback (без JS)
