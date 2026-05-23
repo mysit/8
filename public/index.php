@@ -81,7 +81,7 @@ if ($requestUri === '/api/users' && $requestMethod === 'POST') {
         'status' => 'success',
         'login' => $newUser['login'],
         'password' => $newUser['password'],
-        'profile_url' => $scriptName . '/profile?id=' . $newUser['id'] // Динамическая ссылка для КубГУ
+       'profile_url' => '/8/public/profile?id=' . $newUser['id']
     ]);
     exit;
 }
