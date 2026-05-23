@@ -1,0 +1,16 @@
+.form-group {
+    margin-bottom: 12px;
+}
+.form-group input, .form-group textarea {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.checkbox-container {
+    margin: 10px 0;
+}
+#message-container br {
+    margin-bottom: 4px;
+}
