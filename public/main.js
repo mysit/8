@@ -110,13 +110,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             try {
-                const response = await fetch(`/api/users/${userId}`, { // или '/api/users/' + userId
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                })
+                const response = await // ЗАМЕНИ НА ЭТОТ ВАРИАНТ:
+                    fetch(`/8/public/api/users/${userId}`, { 
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
                 });
 
                 const result = await response.json();
