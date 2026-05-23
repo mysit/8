@@ -75,7 +75,8 @@ if (preg_match('/^\/api\/users\/(\d+)$/', $requestUri, $matches) && $requestMeth
     header('Content-Type: application/json');
     $userId = (int)$matches[1];
 
-    if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] !== $userId) {
+    // ИСПРАВЛЕНО: привели к (int), чтобы строка из сессии не конфликтовала с числом
+    if (!isset($_SESSION['user_id']) || (int)$_SESSION['user_id'] !== $userId) {
         http_response_code(403);
         echo json_encode(['status' => 'error', 'message' => 'Доступ запрещен.']);
         exit;
@@ -113,9 +114,12 @@ if ($requestUri === '/register-fallback' && $requestMethod === 'POST') {
 // 4. PUT /update-fallback
 if ($requestUri === '/update-fallback' && $requestMethod === 'PUT') {
     $userId = (int)($inputData['user_id'] ?? 0);
-    if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] !== $userId) {
+    
+    // ИСПРАВЛЕНО: привели к (int), чтобы типы данных совпали
+    if (!isset($_SESSION['user_id']) || (int)$_SESSION['user_id'] !== $userId) {
         die("Доступ запрещен");
     }
+    
     $errors = Validator::validate($inputData);
     if (!empty($errors)) {
         $_SESSION['form_errors'] = $errors;
@@ -123,6 +127,7 @@ if ($requestUri === '/update-fallback' && $requestMethod === 'PUT') {
         exit;
     }
     $userModel->update($userId, $inputData);
+    $_SESSION['flash_message'] = 'Данные успешно обновлены!';
     header('Location: /8/public/profile?id=' . $userId);
     exit;
 }
