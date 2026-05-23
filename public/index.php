@@ -15,19 +15,28 @@ spl_autoload_register(function ($class) {
 use App\Services\Validator;
 use App\Models\User;
 
-// --- АДАПТАЦИЯ ПОД СЕРВЕР КУБГУ (Очистка подпапок) ---
+// --- АДАПТАЦИЯ ПОД СЕРВЕР КУБГУ (Супер-очистка любых подпапок) ---
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-// Находим, где в пути находится public/index.php или просто public/
-$scriptName = dirname($_SERVER['SCRIPT_NAME']); // Получим "/8/public"
-if ($scriptName !== '/' && strpos($requestUri, $scriptName) === 0) {
-    // Вырезаем базовый путь из запроса, чтобы получить чистый "/" или "/profile"
-    $requestUri = substr($requestUri, strlen($scriptName));
+// Скрипт может вызываться из разных вложенных папок (/8, /8/public, /8/public/index.php)
+// Нам нужно убрать всё, что идет до реальных роутов.
+$badPatterns = [
+    '/8/public/index.php',
+    '/8/public',
+    '/8'
+];
+
+foreach ($badPatterns as $pattern) {
+    if (strpos($requestUri, $pattern) === 0) {
+        $requestUri = substr($requestUri, strlen($pattern));
+        break;
+    }
 }
-if (empty($requestUri)) {
+
+// Если после очистки осталась пустота или двойной слэш, приводим к стандарту "/"
+if (empty($requestUri) || $requestUri === '//') {
     $requestUri = '/';
 }
-// -----------------------------------------------------
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
