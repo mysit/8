@@ -30,7 +30,7 @@ class User {
         $login = 'user_' . rand(1000, 9999);
         $pass = rand(100000, 999999);
 
-        $stmt = $this->pdo->prepare("INSERT INTO users (fio, email, phone, organization, message, login, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $this->pdo->prepare("INSERT INTO users (fullName, email, phone, organization, message, login, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $data['fullName'] ?? '',
             $data['email'] ?? '',
@@ -61,7 +61,7 @@ class User {
     }
 
     public function update($id, $data) {
-        $stmt = $this->pdo->prepare("UPDATE users SET fio = ?, email = ?, phone = ?, organization = ?, message = ? WHERE id = ?");
+        $stmt = $this->pdo->prepare("UPDATE users SET fullName = ?, email = ?, phone = ?, organization = ?, message = ? WHERE id = ?");
         $stmt->execute([
             $data['fullName'] ?? '', 
             $data['email'] ?? '',
