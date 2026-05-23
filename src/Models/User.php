@@ -19,7 +19,6 @@ class User {
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
             ]);
         } catch (PDOException $e) {
-            // Если БД упадет, мы вернем красивый JSON, чтобы JS не ломался от HTML-ошибок
             header('Content-Type: application/json');
             http_response_code(500);
             echo json_encode(['status' => 'error', 'message' => 'Ошибка подключения к БД: ' . $e->getMessage()]);
@@ -28,13 +27,13 @@ class User {
     }
 
     public function create($data) {
-        // Генерируем случайные доступы для нового пользователя по ТЗ
         $login = 'user_' . rand(1000, 9999);
         $pass = rand(100000, 999999);
 
-        $stmt = $this->pdo->prepare("INSERT INTO users (fullName, email, phone, organization, message, login, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        // МЕНЯЕМ ЗДЕСЬ: вместо fullName пишем name. (Если в БД у тебя fio, замени name на fio)
+        $stmt = $this->pdo->prepare("INSERT INTO users (name, email, phone, organization, message, login, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
-            $data['fullName'] ?? '',
+            $data['fullName'] ?? '', // Из формы всё так же забираем fullName
             $data['email'] ?? '',
             $data['phone'] ?? '',
             $data['organization'] ?? '',
@@ -51,9 +50,10 @@ class User {
     }
 
     public function update($id, $data) {
-        $stmt = $this->pdo->prepare("UPDATE users SET fullName = ?, email = ?, phone = ?, organization = ?, message = ? WHERE id = ?");
+        // МЕНЯЕМ ЗДЕСЬ: вместо fullName = ? пишем name = ?
+        $stmt = $this->pdo->prepare("UPDATE users SET name = ?, email = ?, phone = ?, organization = ?, message = ? WHERE id = ?");
         $stmt->execute([
-            $data['fullName'] ?? '',
+            $data['fullName'] ?? '', // Данные из формы ложатся в колонку name
             $data['email'] ?? '',
             $data['phone'] ?? '',
             $data['organization'] ?? '',
