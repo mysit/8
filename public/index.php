@@ -117,15 +117,12 @@ if ($requestUri === '/register-fallback' && $requestMethod === 'POST') {
     if (!empty($errors)) {
         $_SESSION['form_errors'] = $errors;
         $_SESSION['old_data'] = $inputData;
-        header('Location: /8/public/');
+        
+        // БЫЛО: header('Location: ' . $scriptName . '/');
+        // ДОЛЖНО СТАТЬ:
+        header('Location: /8/public/'); 
         exit;
     }
-    $newUser = $userModel->create($inputData);
-    $_SESSION['user_id'] = $newUser['id'];
-    $_SESSION['just_registered'] = $newUser;
-    header('Location: /8/public/profile?id=' . $newUser['id']);
-    exit;
-}
 
 // 4. Синхронная обработка PUT /update-fallback (без JS)
 if ($requestUri === '/update-fallback' && $requestMethod === 'PUT') {
