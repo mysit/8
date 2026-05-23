@@ -13,7 +13,6 @@ unset($_SESSION['form_errors'], $_SESSION['old_data']);
 <body>
     <div class="main_screen">
         <h1 class="title">Форма обратной связи</h1>
-        <button id="btn_form" class="form_btn">заполнить форму</button>
         
         <?php if (isset($_SESSION['user_id'])): ?>
             <p style="margin-top:20px;">Вы уже авторизованы. <a href="/profile?id=<?= $_SESSION['user_id'] ?>">Перейти в профиль</a></p>
