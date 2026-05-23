@@ -1,94 +1,65 @@
 <?php
-use App\Models\User;
-$userModel = new User();
-$userId = (int)($_GET['id'] ?? 0);
-$user = $userModel->findById($userId);
+namespace App\Models;
 
-if (!$user) {
-    die("Пользователь не найден.");
+use PDO;
+use PDOException;
+
+class User {
+    private $pdo;
+
+    public function __construct() {
+        $host = 'localhost';
+        $dbname = 'u82196';
+        $username = 'u82196';
+        $password = '4736526';
+
+        try {
+            $this->pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+            ]);
+        } catch (PDOException $e) {
+            // Если БД упадет, мы вернем красивый JSON, чтобы JS не ломался от HTML-ошибок
+            header('Content-Type: application/json');
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => 'Ошибка подключения к БД: ' . $e->getMessage()]);
+            exit;
+        }
+    }
+
+    public function create($data) {
+        // Генерируем случайные доступы для нового пользователя по ТЗ
+        $login = 'user_' . rand(1000, 9999);
+        $pass = rand(100000, 999999);
+
+        $stmt = $this->pdo->prepare("INSERT INTO users (fullName, email, phone, organization, message, login, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([
+            $data['fullName'] ?? '',
+            $data['email'] ?? '',
+            $data['phone'] ?? '',
+            $data['organization'] ?? '',
+            $data['message'] ?? '',
+            $login,
+            $pass
+        ]);
+
+        return [
+            'id' => $this->pdo->lastInsertId(),
+            'login' => $login,
+            'password' => $pass
+        ];
+    }
+
+    public function update($id, $data) {
+        $stmt = $this->pdo->prepare("UPDATE users SET fullName = ?, email = ?, phone = ?, organization = ?, message = ? WHERE id = ?");
+        $stmt->execute([
+            $data['fullName'] ?? '',
+            $data['email'] ?? '',
+            $data['phone'] ?? '',
+            $data['organization'] ?? '',
+            $data['message'] ?? '',
+            $id
+        ]);
+        return true;
+    }
 }
-
-$isAuthorized = isset($_SESSION['user_id']) && $_SESSION['user_id'] === $userId;
-$errors = $_SESSION['form_errors'] ?? [];
-unset($_SESSION['form_errors']);
-?>
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Страница</title>
-    <link rel="stylesheet" href="/8/public/style.css">
-</head>
-<body>
-<body>
-    <div style="max-width: 600px; margin: 40px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
-        <h2>Профиль нового пользователя</h2>
-        
-        <?php if (isset($_SESSION['just_registered']) && $_SESSION['just_registered']['id'] == $userId): ?>
-            <div style="background-color: #d4edda; color: #155724; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
-                <strong>Важные данные для входа (показаны 1 раз):</strong><br>
-                Логин: <code><?= htmlspecialchars($_SESSION['just_registered']['login']) ?></code><br>
-                Пароль: <code><?= htmlspecialchars($_SESSION['just_registered']['password']) ?></code>
-            </div>
-            <?php unset($_SESSION['just_registered']); ?>
-        <?php endif; ?>
-
-        <?php if (isset($_SESSION['flash_message'])): ?>
-            <div style="background-color: #d4edda; color: #155724; padding: 10px; margin-bottom: 15px;">
-                <?= $_SESSION['flash_message']; unset($_SESSION['flash_message']); ?>
-            </div>
-        <?php endif; ?>
-
-        <p><strong>Ваш Логин:</strong> <?= htmlspecialchars($user['login']) ?></p>
-        <p><strong>Адрес профиля:</strong> <code>/profile?id=<?= $user['id'] ?></code></p>
-        
-        <hr style="margin:20px 0;">
-
-        <h3>Изменить данные (Кроме логина и пароля)</h3>
-        
-        <?php if ($isAuthorized): ?>
-           <form action="/8/public/update-fallback" method="POST">
-                <input type="hidden" name="_method" value="PUT">
-                <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
-
-                <div id="message-container" style="margin: 10px 0; padding: 10px; border-radius: 5px; display: <?= !empty($errors) ? 'block' : 'none' ?>; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
-                    <?php if(!empty($errors)) echo implode('<br>', $errors); ?>
-                </div>
-
-                <div class="form-group">
-                    <label for="fullName">ФИО</label><br>
-                    <input type="text" id="fullName" name="fullName" required value="<?= htmlspecialchars($user['full_name']) ?>" style="width:100%; padding:8px;">
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Email</label><br>
-                    <input type="email" id="email" name="email" required value="<?= htmlspecialchars($user['email']) ?>" style="width:100%; padding:8px;">
-                </div>
-
-                <div class="form-group">
-                    <label for="phone">Телефон</label><br>
-                    <input type="text" id="phone" name="phone" value="<?= htmlspecialchars($user['phone']) ?>" style="width:100%; padding:8px;">
-                </div>
-
-                <div class="form-group">
-                    <label for="organization">Организация</label><br>
-                    <input type="text" id="organization" name="organization" value="<?= htmlspecialchars($user['organization']) ?>" style="width:100%; padding:8px;">
-                </div>
-
-                <div class="form-group">
-                    <label for="message">Сообщение</label><br>
-                    <textarea id="message" name="message" required style="width:100%; height:100px; padding:8px;"><?= htmlspecialchars($user['message']) ?></textarea>
-                </div>
-
-                <button type="submit" id="submit_form" class="form_btn" style="margin-top:15px;">Сохранить изменения</button>
-            </form>
-        <?php else: ?>
-            <p style="color:red;">Вы не авторизованы как владелец этого профиля, редактирование запрещено.</p>
-        <?php endif; ?>
-        
-        <p style="margin-top:20px;"><a href="/">На главную форму</a></p>
-    </div>
-
-    <script src="/8/public/main.js"></script>
-</body>
-</html>
