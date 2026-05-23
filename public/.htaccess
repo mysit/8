@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /8/public/
+
+    # Если запрашивают конкретный файл (css, js, png, jpg), отдаем его как есть
+    RewriteCond %{REQUEST_URI} \.(css|js|png|jpg|jpeg|gif|ico|svg)$ [NC]
+    RewriteRule ^ - [L]
+
+    # Для всего остального — стандартная проверка на существование
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Перенаправляем на index.php
+    RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
