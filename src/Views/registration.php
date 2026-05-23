@@ -22,7 +22,8 @@ unset($_SESSION['form_errors'], $_SESSION['old_data']);
     <div class="bloom" id="bloom"></div>
     
     <div class="form" id="form-container" data-user-id="<?= $_SESSION['user_id'] ?? '' ?>">
-        <form action="/8/public/register-fallback" method="POST">
+        <form action="/8/public/update-fallback" method="POST">
+<input type="hidden" name="_method" value="PUT">
             
             <div id="message-container" style="margin: 10px 0; padding: 10px; border-radius: 5px; display: <?= !empty($errors) ? 'block' : 'none' ?>; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
                 <?php if(!empty($errors)) echo implode('<br>', $errors); ?>
