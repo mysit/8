@@ -7,10 +7,10 @@ class User {
     private PDO $db;
 
     public function __construct() {
-       $user = 'u82196';
-$pass = '4736526';
-$db_name = 'u82196';
-$host = 'localhost';
+        $username = 'u82196';
+        $password = '4736526';
+        $dbname = 'u82196';
+        $host = 'localhost';
         
         $this->db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
