@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             // Определяем эндпоинт и метод REST API
-            let apiEndpoint = '/api/users';
+            let apiEndpoint = '/8/public/api/users';
             let requestMethod = 'POST';
 
             if (currentUserId) {
