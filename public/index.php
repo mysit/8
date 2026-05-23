@@ -15,20 +15,7 @@ spl_autoload_register(function ($class) {
 use App\Services\Validator;
 use App\Models\User;
 
-// --- АДАПТАЦИЯ ПОД СЕРВЕР КУБГУ (Очистка подпапок) ---
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-
-// Находим, где в пути находится public/index.php или просто public/
-$scriptName = dirname($_SERVER['SCRIPT_NAME']); // Получим "/8/public"
-if ($scriptName !== '/' && strpos($requestUri, $scriptName) === 0) {
-    // Вырезаем базовый путь из запроса, чтобы получить чистый "/" или "/profile"
-    $requestUri = substr($requestUri, strlen($scriptName));
-}
-if (empty($requestUri)) {
-    $requestUri = '/';
-}
-// -----------------------------------------------------
-
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 // Поддержка эмуляции методов PUT через POST формы (для fallback-режима)
@@ -45,14 +32,7 @@ if (str_contains($contentType, 'application/json')) {
     $inputData = $_POST;
 }
 
-try {
-    $userModel = new User();
-} catch (\PDOException $e) {
-    header('Content-Type: application/json');
-    http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'Ошибка подключения к БД: ' . $e->getMessage()]);
-    exit;
-}
+$userModel = new User();
 
 // --- МАРШРУТЫ REST API ---
 
@@ -66,13 +46,13 @@ if ($requestUri === '/api/users' && $requestMethod === 'POST') {
         exit;
     }
     $newUser = $userModel->create($inputData);
-    $_SESSION['user_id'] = $newUser['id']; // Имитируем авторизацию
+    $_SESSION['user_id'] = $newUser['id']; // Имитируем авторизацию после создания
     
     echo json_encode([
         'status' => 'success',
         'login' => $newUser['login'],
         'password' => $newUser['password'],
-        'profile_url' => $scriptName . '/profile?id=' . $newUser['id'] // Динамическая ссылка для КубГУ
+        'profile_url' => '/profile?id=' . $newUser['id']
     ]);
     exit;
 }
@@ -102,23 +82,23 @@ if (preg_match('/^\/api\/users\/(\d+)$/', $requestUri, $matches) && $requestMeth
 
 // --- МАРШРУТЫ ДЛЯ FALLBACK-РЕЖИМА (БЕЗ JS) ---
 
-// 3. Синхронная обработка POST /register-fallback (без JS)
+// 3. Синхронная обработка POST / register (без JS)
 if ($requestUri === '/register-fallback' && $requestMethod === 'POST') {
     $errors = Validator::validate($inputData);
     if (!empty($errors)) {
         $_SESSION['form_errors'] = $errors;
         $_SESSION['old_data'] = $inputData;
-        header('Location: ' . $scriptName . '/');
+        header('Location: /');
         exit;
     }
     $newUser = $userModel->create($inputData);
     $_SESSION['user_id'] = $newUser['id'];
-    $_SESSION['just_registered'] = $newUser;
-    header('Location: ' . $scriptName . '/profile?id=' . $newUser['id']);
+    $_SESSION['just_registered'] = $newUser; // сохраняем данные для показа логина/пароля в профиле
+    header('Location: /profile?id=' . $newUser['id']);
     exit;
 }
 
-// 4. Синхронная обработка PUT /update-fallback (без JS)
+// 4. Синхронная обработка PUT / update (без JS)
 if ($requestUri === '/update-fallback' && $requestMethod === 'PUT') {
     $userId = (int)($inputData['user_id'] ?? 0);
     if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] !== $userId) {
@@ -127,12 +107,12 @@ if ($requestUri === '/update-fallback' && $requestMethod === 'PUT') {
     $errors = Validator::validate($inputData);
     if (!empty($errors)) {
         $_SESSION['form_errors'] = $errors;
-        header('Location: ' . $scriptName . '/profile?id=' . $userId);
+        header('Location: /profile?id=' . $userId);
         exit;
     }
     $userModel->update($userId, $inputData);
     $_SESSION['flash_message'] = 'Данные успешно обновлены синхронно!';
-    header('Location: ' . $scriptName . '/profile?id=' . $userId);
+    header('Location: /profile?id=' . $userId);
     exit;
 }
 
@@ -148,4 +128,4 @@ if ($requestUri === '/profile') {
 }
 
 http_response_code(404);
-echo "Страница не найдена. Запрошенный путь: " . htmlspecialchars($requestUri);
+echo "Страница не найдена.";
