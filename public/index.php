@@ -123,6 +123,7 @@ if ($requestUri === '/register-fallback' && $requestMethod === 'POST') {
         header('Location: /8/public/'); 
         exit;
     }
+}
 
 // 4. Синхронная обработка PUT /update-fallback (без JS)
 if ($requestUri === '/update-fallback' && $requestMethod === 'PUT') {
