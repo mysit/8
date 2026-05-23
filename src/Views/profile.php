@@ -15,10 +15,10 @@ unset($_SESSION['form_errors']);
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <base href="/8/public/">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/style.css">
-    <title>Профиль пользователя</title>
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div style="max-width: 600px; margin: 40px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
