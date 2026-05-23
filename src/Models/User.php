@@ -30,10 +30,10 @@ class User {
         $login = 'user_' . rand(1000, 9999);
         $pass = rand(100000, 999999);
 
-        // МЕНЯЕМ ЗДЕСЬ: вместо fullName пишем name. (Если в БД у тебя fio, замени name на fio)
-        $stmt = $this->pdo->prepare("INSERT INTO users (name, email, phone, organization, message, login, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        // ПРОБУЕМ ДЕФОЛТНОЕ ДЛЯ ЛАБ КУБГУ: fio
+        $stmt = $this->pdo->prepare("INSERT INTO users (fio, email, phone, organization, message, login, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
-            $data['fullName'] ?? '', // Из формы всё так же забираем fullName
+            $data['fullName'] ?? '', // Из формы забираем fullName
             $data['email'] ?? '',
             $data['phone'] ?? '',
             $data['organization'] ?? '',
@@ -50,10 +50,10 @@ class User {
     }
 
     public function update($id, $data) {
-        // МЕНЯЕМ ЗДЕСЬ: вместо fullName = ? пишем name = ?
-        $stmt = $this->pdo->prepare("UPDATE users SET name = ?, email = ?, phone = ?, organization = ?, message = ? WHERE id = ?");
+        // ПРОБУЕМ ДЕФОЛТНОЕ ДЛЯ ЛАБ КУБГУ: fio
+        $stmt = $this->pdo->prepare("UPDATE users SET fio = ?, email = ?, phone = ?, organization = ?, message = ? WHERE id = ?");
         $stmt->execute([
-            $data['fullName'] ?? '', // Данные из формы ложатся в колонку name
+            $data['fullName'] ?? '', 
             $data['email'] ?? '',
             $data['phone'] ?? '',
             $data['organization'] ?? '',
