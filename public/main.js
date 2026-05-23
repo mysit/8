@@ -100,24 +100,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 message: message.value
             };
 
-            // Определяем эндпоинт и метод REST API
+            // Автоматически подставляем правильные пути для сервера КубГУ
             let apiEndpoint = '/8/public/api/users';
             let requestMethod = 'POST';
 
+            // Если мы редактируем профиль (есть ID) — переключаемся на PUT
             if (currentUserId) {
-                apiEndpoint = `/api/users/${currentUserId}`;
+                apiEndpoint = `/8/public/api/users/${currentUserId}`;
                 requestMethod = 'PUT';
             }
 
             try {
-                const response = await // ЗАМЕНИ НА ЭТОТ ВАРИАНТ:
-                    fetch(`/8/public/api/users/${userId}`, { 
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data)
-                    })
+                // Универсальный fetch, работающий по нужным эндпоинтам КубГУ
+                const response = await fetch(apiEndpoint, {
+                    method: requestMethod,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
                 });
 
                 const result = await response.json();
