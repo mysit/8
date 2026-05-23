@@ -47,7 +47,7 @@ unset($_SESSION['form_errors']);
         <h3>Изменить данные (Кроме логина и пароля)</h3>
         
         <?php if ($isAuthorized): ?>
-            <form id="contactForm" action="/update-fallback" method="POST">
+           <form action="/8/public/update-fallback" method="POST">
                 <input type="hidden" name="_method" value="PUT">
                 <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
 
