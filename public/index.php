@@ -117,13 +117,13 @@ if ($requestUri === '/register-fallback' && $requestMethod === 'POST') {
     if (!empty($errors)) {
         $_SESSION['form_errors'] = $errors;
         $_SESSION['old_data'] = $inputData;
-        header('Location: ' . $scriptName . '/');
+        header('Location: /8/public/');
         exit;
     }
     $newUser = $userModel->create($inputData);
     $_SESSION['user_id'] = $newUser['id'];
     $_SESSION['just_registered'] = $newUser;
-    header('Location: ' . $scriptName . '/profile?id=' . $newUser['id']);
+    header('Location: /8/public/profile?id=' . $newUser['id']);
     exit;
 }
 
@@ -136,12 +136,12 @@ if ($requestUri === '/update-fallback' && $requestMethod === 'PUT') {
     $errors = Validator::validate($inputData);
     if (!empty($errors)) {
         $_SESSION['form_errors'] = $errors;
-        header('Location: ' . $scriptName . '/profile?id=' . $userId);
+        header('Location: /8/public/profile?id=' . $userId);
         exit;
     }
     $userModel->update($userId, $inputData);
     $_SESSION['flash_message'] = 'Данные успешно обновлены синхронно!';
-    header('Location: ' . $scriptName . '/profile?id=' . $userId);
+    header('Location: /8/public/profile?id=' . $userId);
     exit;
 }
 
