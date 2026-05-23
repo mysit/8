@@ -17,7 +17,7 @@ unset($_SESSION['form_errors']);
 <head>
     <meta charset="UTF-8">
     <title>Страница</title>
-    <link rel="stylesheet" href="/8/public/css/style.css">
+    <link rel="stylesheet" href="/8/public/style.css">
 </head>
 <body>
 <body>
@@ -89,6 +89,6 @@ unset($_SESSION['form_errors']);
         <p style="margin-top:20px;"><a href="/">На главную форму</a></p>
     </div>
 
-    <script src="/8/public/js/main.js"></script>
+    <script src="/8/public/main.js"></script>
 </body>
 </html>
