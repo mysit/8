@@ -8,7 +8,7 @@ unset($_SESSION['form_errors'], $_SESSION['old_data']);
 <head>
     <meta charset="UTF-8">
     <title>Страница</title>
-    <link rel="stylesheet" href="/8/public/css/style.css">
+    <link rel="stylesheet" href="/8/public/style.css">
 </head>
 <body>
     <div class="main_screen">
@@ -62,6 +62,6 @@ unset($_SESSION['form_errors'], $_SESSION['old_data']);
             <button type="submit" id="submit_form" class="form_btn">отправить форму</button>
         </form>
     </div>
-    <script src="/8/public/js/main.js"></script>
+    <script src="/8/public/main.js"></script>
 </body>
 </html>
