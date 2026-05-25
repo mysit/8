@@ -1,10 +1,14 @@
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    
-    # Если это реальный файл или папка (например, css/style.css) — отдаем его сразу
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    
-    # Всё остальное перенаправляем в index.php
-    RewriteRule ^(.*)$ index.php [QSA,L]
-</IfModule>
+RewriteEngine On
+
+# Если запрашивают существующий файл или папку — отдаём как есть
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Всё остальное перенаправляем на index.php
+RewriteRule ^ index.php [QSA,L]
+
+# Защита: запрещаем прямой доступ к .php файлам кроме index.php
+<FilesMatch "^(?!index\.php).*\.php$">
+    Deny from all
+</FilesMatch>
