@@ -1,23 +1,23 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // элементы формы
+    // общие элементы
     const formContainer = document.getElementById("form-container");
+    const editModal = document.getElementById("edit-modal");
+    const bloom = document.getElementById("bloom");
     const contactForm = document.getElementById("contactForm");
     const submitBtn = document.getElementById("submit_form");
+    const btnEdit = document.getElementById("btn_form");
+    
     const fullName = document.getElementById('fullName');
     const email = document.getElementById('email');
     const phone = document.getElementById('phone');
     const message = document.getElementById('message');
     const privacy = document.getElementById('privacy');
-
-    // элементы модального окна (для профиля)
-    const btn = document.getElementById("btn_form");
-    const bloom = document.getElementById("bloom");
     const messageContainer = document.getElementById('message-container');
 
     const storageKey = 'animal_request_form_data';
-    let isFormOpen = false;
+    let isModalOpen = false;
 
-    // контейнер сообщений
+    // создаём контейнер сообщений, если его нет
     let msgBox = messageContainer;
     if (!msgBox && submitBtn?.parentNode) {
         msgBox = document.createElement('div');
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
             valid = false;
         } else if (!email?.value.trim()) {
             showMessage('Пожалуйста, введите email', 'error');
-            if (email) { email.style.borderColor='#dc3545'; }
+            if (email) email.style.borderColor='#dc3545';
             valid = false;
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
             showMessage('Некорректный email', 'error');
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function submitForm(e) {
         e.preventDefault();
         if (!validateForm()) return;
-        if (submitBtn) { submitBtn.disabled=true; submitBtn.textContent='Отправка...'; }
+        if (submitBtn) { submitBtn.disabled=true; submitBtn.textContent='Сохранение...'; }
 
         const data = {
             fullName: fullName.value,
@@ -105,11 +105,11 @@ document.addEventListener('DOMContentLoaded', function() {
             privacy: privacy.checked ? '1' : '0'
         };
 
-        const params = new URLSearchParams(window.location.search);
-        const userId = params.get('id') || formContainer?.dataset.userId;
-        const isUpdate = !!userId;
-        const endpoint = `/8/public/api/users${isUpdate ? '/'+userId : ''}`;
-        const method = isUpdate ? 'PUT' : 'POST';
+        // определяем режим: регистрация или редактирование
+        const isEdit = !!editModal?.dataset.userId;
+        const userId = isEdit ? editModal.dataset.userId : null;
+        const endpoint = `/8/public/api/users${userId ? '/'+userId : ''}`;
+        const method = userId ? 'PUT' : 'POST';
 
         try {
             const res = await fetch(endpoint, {
@@ -123,11 +123,12 @@ document.addEventListener('DOMContentLoaded', function() {
             catch (err) { throw new Error('Ошибка сервера: неверный формат ответа'); }
 
             if (res.ok) {
-                if (!isUpdate) {
+                if (!isEdit) {
+                    // регистрация успешна
                     formContainer.innerHTML = `
                         <div style="text-align:center;padding:30px 20px">
                             <h3 style="margin-bottom:20px">Заявка отправлена</h3>
-                            <div style="background:#f8f9fa;padding:15px;border-radius:6px;margin-bottom:20px;text-align:left">
+                            <div style="background:#fff;padding:15px;border-radius:12px;margin-bottom:20px;text-align:left;box-shadow:0 2px 8px rgba(0,0,0,0.05)">
                                 <p style="margin:8px 0"><strong>Логин:</strong> <code>${result.login}</code></p>
                                 <p style="margin:8px 0"><strong>Пароль:</strong> <code>${result.password}</code></p>
                             </div>
@@ -136,7 +137,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     clearFormData();
                 } else {
                     showMessage(result.message || 'Данные обновлены', 'success');
-                    setTimeout(() => { if (formContainer) formContainer.style.display='none'; }, 1500);
+                    setTimeout(() => {
+                        editModal.classList.remove('on');
+                        bloom.classList.remove('on');
+                        document.body.style.overflow='';
+                        isModalOpen=false;
+                    }, 1500);
                 }
             } else {
                 const errs = result.errors ? Object.values(result.errors).join('<br>') : (result.message || 'Ошибка');
@@ -146,26 +152,29 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error(err);
             showMessage(`Ошибка: ${err.message}`, 'error');
         } finally {
-            if (submitBtn) { submitBtn.disabled=false; submitBtn.textContent='отправить форму'; }
+            if (submitBtn) { submitBtn.disabled=false; submitBtn.textContent = isEdit ? 'Сохранить изменения' : 'отправить форму'; }
         }
     }
 
-    // модальное окно (для профиля)
-    function openForm() {
-        formContainer?.classList.add('on');
-        bloom?.classList.add('on');
+    // управление модалкой (только для профиля)
+    function openModal() {
+        if (!editModal) return;
+        editModal.classList.add('on');
+        bloom.classList.add('on');
         document.body.style.overflow='hidden';
-        isFormOpen=true;
+        isModalOpen=true;
     }
-    function closeForm() {
-        formContainer?.classList.remove('on');
-        bloom?.classList.remove('on');
+    function closeModal() {
+        if (!editModal) return;
+        editModal.classList.remove('on');
+        bloom.classList.remove('on');
         document.body.style.overflow='';
-        isFormOpen=false;
+        isModalOpen=false;
     }
-    if (btn) btn.onclick = openForm;
-    if (bloom) bloom.onclick = closeForm;
-    document.onkeydown = e => { if (e.key==='Escape' && isFormOpen) closeForm(); };
+
+    if (btnEdit) btnEdit.onclick = openModal;
+    if (bloom) bloom.onclick = closeModal;
+    document.onkeydown = e => { if (e.key==='Escape' && isModalOpen) closeModal(); };
 
     // инициализация
     loadFormData();
