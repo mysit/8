@@ -22,8 +22,8 @@ $flash = $_SESSION['flash_message'] ?? '';
 $errors = $_SESSION['form_errors'] ?? [];
 unset($_SESSION['flash_message'], $_SESSION['form_errors']);
 
-// Получаем ФИО из любой возможной колонки
-$nameValue = $user['fio'] ?? $user['full_name'] ?? $user['fullName'] ?? $user['name'] ?? 'Не указано';
+// ФИО может быть в full_name
+$nameValue = $user['full_name'] ?? 'Не указано';
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -63,7 +63,11 @@ $nameValue = $user['fio'] ?? $user['full_name'] ?? $user['fullName'] ?? $user['n
 
             <div class="profile-info">
                 <div class="info-row"><span class="info-label">Логин:</span> <code><?= htmlspecialchars($user['login'] ?? '—') ?></code></div>
-                <div class="info-row"><span class="info-label">Пароль:</span> <code><?= htmlspecialchars($user['password'] ?? '—') ?></code></div>
+                <div class="info-row">
+                    <span class="info-label">Пароль:</span> 
+                    <code title="Пароль показывается только один раз при регистрации">••••••</code>
+                    <small style="display:block;margin-top:4px;color:#888;font-size:12px">не отображается в целях безопасности</small>
+                </div>
                 <div class="info-row"><span class="info-label">ФИО:</span> <?= htmlspecialchars($nameValue) ?></div>
                 <div class="info-row"><span class="info-label">Email:</span> <?= htmlspecialchars($user['email'] ?? '—') ?></div>
                 <div class="info-row"><span class="info-label">Телефон:</span> <?= htmlspecialchars($user['phone'] ?? '—') ?></div>
@@ -104,7 +108,6 @@ $nameValue = $user['fio'] ?? $user['full_name'] ?? $user['fullName'] ?? $user['n
                 <label>Сообщение *</label>
                 <textarea id="message" name="message" rows="4" required><?= htmlspecialchars($user['message']) ?></textarea>
             </div>
-            <!-- Чекбокс для единообразия, но не валидируется при обновлении -->
             <div class="checkbox-container">
                 <input type="checkbox" id="privacy" name="privacy" checked disabled>
                 <label for="privacy">Согласие на обработку данных (сохранено при регистрации)</label>
