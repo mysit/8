@@ -2,7 +2,8 @@
 if (!isset($_SESSION)) session_start();
 if (!defined('ENTRY_POINT')) {
     $target = '/8/public/index.php' . ($_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STRING'] : '');
-    header('Location: ' . $target); exit;
+    header('Location: ' . $target);
+    exit;
 }
 $errors = $_SESSION['form_errors'] ?? [];
 $old = $_SESSION['old_data'] ?? [];
@@ -12,8 +13,8 @@ unset($_SESSION['form_errors'], $_SESSION['old_data']);
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base href="/8/public/">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Коты — форма заявки</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,7 +27,7 @@ unset($_SESSION['form_errors'], $_SESSION['old_data']);
     </video>
 
     <div class="mob_nav" id="mobnav">
-        <img src="/8/public/menu.svg" width="33%" id="menu2" alt="">
+        <img src="menu.svg" width="33%" id="menu2" alt="">
         <a href="/8/public/" class="nav_link_mob">Главная</a>
         <a href="#fsc" class="nav_link_mob">Котики</a>
         <a href="#ss" class="nav_link_mob">Галерея</a>
@@ -41,7 +42,7 @@ unset($_SESSION['form_errors'], $_SESSION['old_data']);
             <a href="#ss" class="nav_link">Галерея</a>
             <a href="#ts" class="nav_link">Контакты</a>
         </nav>
-        <img src="/8/public/menu.svg" id="menu" alt="">
+        <img src="menu.svg" id="menu" alt="">
     </div>
 
     <div class="fs">
@@ -90,11 +91,37 @@ unset($_SESSION['form_errors'], $_SESSION['old_data']);
                 <?php if (!empty($errors)): ?>
                     <div class="error-box"><?= implode('<br>', array_map('htmlspecialchars', $errors)) ?></div>
                 <?php endif; ?>
-                <div class="form-group"><label for="fullName" class="required">ФИО</label><input type="text" id="fullName" name="fullName" required placeholder="Введите ваше полное имя" value="<?= htmlspecialchars($old['fullName'] ?? '') ?>"></div>
-                <div class="form-group"><label for="email" class="required">Email</label><input type="email" id="email" name="email" required placeholder="example@domain.com" value="<?= htmlspecialchars($old['email'] ?? '') ?>"></div>
-                <div class="form-group"><label for="phone">Телефон</label><input type="tel" id="phone" name="phone" placeholder="+7 (XXX) XXX-XX-XX" value="<?= htmlspecialchars($old['phone'] ?? '') ?>"></div>
-                <div class="form-group"><label for="message" class="required">Сообщение</label><textarea id="message" name="message" required placeholder="Опишите ваш вопрос или предложение..."><?= htmlspecialchars($old['message'] ?? '') ?></textarea></div>
-                <div class="checkbox-container"><input type="checkbox" id="privacy" name="privacy" required <?= isset($old['privacy']) ? 'checked' : '' ?>><label for="privacy">Я согласен с политикой обработки персональных данных</label></div>
+                
+                <div class="form-group">
+                    <label for="fullName">ФИО *</label>
+                    <input type="text" id="fullName" name="fullName" required placeholder="Введите ваше полное имя" value="<?= htmlspecialchars($old['fullName'] ?? '') ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required placeholder="example@domain.com" value="<?= htmlspecialchars($old['email'] ?? '') ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Телефон</label>
+                    <input type="tel" id="phone" name="phone" placeholder="+7 (XXX) XXX-XX-XX" value="<?= htmlspecialchars($old['phone'] ?? '') ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label for="organization">Организация</label>
+                    <input type="text" id="organization" name="organization" placeholder="Название организации" value="<?= htmlspecialchars($old['organization'] ?? '') ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">Сообщение *</label>
+                    <textarea id="message" name="message" required placeholder="Опишите ваш вопрос или предложение..."><?= htmlspecialchars($old['message'] ?? '') ?></textarea>
+                </div>
+                
+                <div class="checkbox-container">
+                    <input type="checkbox" id="privacy" name="privacy" required <?= isset($old['privacy']) ? 'checked' : '' ?>>
+                    <label for="privacy">Я согласен с политикой обработки персональных данных</label>
+                </div>
+                
                 <button type="submit" id="submit_form" class="form_btn">отправить форму</button>
             </form>
         </div>
@@ -105,9 +132,9 @@ unset($_SESSION['form_errors'], $_SESSION['old_data']);
         <div class="foo_block"><h3>Контакты</h3><p>г.Краснодар, ул.Котовского</p><p>+7 (495) 123-45-67</p><p>info@kotiki.ru</p></div>
     </footer>
 
-    <script src="/8/public/menu.js"></script>
-    <script src="/8/public/slider.js"></script>
-    <script src="/8/public/main.js"></script>
+    <script src="menu.js"></script>
+    <script src="slider.js"></script>
+    <script src="main.js"></script>
     <script>
     function scrollToAnchor(id){const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
     </script>
