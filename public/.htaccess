@@ -1,14 +1,20 @@
+# public/.htaccess
 RewriteEngine On
 
-# Если запрашивают существующий файл или папку — отдаём как есть
+# Разрешаем доступ к статике
+<FilesMatch "\.(css|js|png|jpg|gif|ico|svg|webp|txt)$">
+    Require all granted
+</FilesMatch>
+
+# Если файл или папка существуют — отдаём их
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# Всё остальное перенаправляем на index.php
+# Всё остальное — на index.php
 RewriteRule ^ index.php [QSA,L]
 
-# Защита: запрещаем прямой доступ к .php файлам кроме index.php
-<FilesMatch "^(?!index\.php).*\.php$">
-    Deny from all
-</FilesMatch>
+# Разрешаем доступ к index.php
+<Files "index.php">
+    Require all granted
+</Files>
