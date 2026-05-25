@@ -22,7 +22,8 @@ $flash = $_SESSION['flash_message'] ?? '';
 $errors = $_SESSION['form_errors'] ?? [];
 unset($_SESSION['flash_message'], $_SESSION['form_errors']);
 
-$nameValue = $user['fio'] ?? $user['full_name'] ?? $user['fullName'] ?? $user['name'] ?? '';
+// Получаем ФИО из любой возможной колонки
+$nameValue = $user['fio'] ?? $user['full_name'] ?? $user['fullName'] ?? $user['name'] ?? 'Не указано';
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -61,13 +62,13 @@ $nameValue = $user['fio'] ?? $user['full_name'] ?? $user['fullName'] ?? $user['n
             <?php endif; ?>
 
             <div class="profile-info">
-                <div class="info-row"><span class="info-label">Логин:</span> <code><?= htmlspecialchars($user['login']) ?></code></div>
-                <div class="info-row"><span class="info-label">Пароль:</span> <code><?= htmlspecialchars($user['password']) ?></code></div>
+                <div class="info-row"><span class="info-label">Логин:</span> <code><?= htmlspecialchars($user['login'] ?? '—') ?></code></div>
+                <div class="info-row"><span class="info-label">Пароль:</span> <code><?= htmlspecialchars($user['password'] ?? '—') ?></code></div>
                 <div class="info-row"><span class="info-label">ФИО:</span> <?= htmlspecialchars($nameValue) ?></div>
-                <div class="info-row"><span class="info-label">Email:</span> <?= htmlspecialchars($user['email']) ?></div>
-                <div class="info-row"><span class="info-label">Телефон:</span> <?= htmlspecialchars($user['phone'] ?: '—') ?></div>
-                <div class="info-row"><span class="info-label">Организация:</span> <?= htmlspecialchars($user['organization'] ?: '—') ?></div>
-                <div class="info-row"><span class="info-label">Сообщение:</span> <p><?= nl2br(htmlspecialchars($user['message'])) ?></p></div>
+                <div class="info-row"><span class="info-label">Email:</span> <?= htmlspecialchars($user['email'] ?? '—') ?></div>
+                <div class="info-row"><span class="info-label">Телефон:</span> <?= htmlspecialchars($user['phone'] ?? '—') ?></div>
+                <div class="info-row"><span class="info-label">Организация:</span> <?= htmlspecialchars($user['organization'] ?? '—') ?></div>
+                <div class="info-row"><span class="info-label">Сообщение:</span><br><p><?= nl2br(htmlspecialchars($user['message'] ?? '')) ?></p></div>
             </div>
 
             <?php if ($canEdit): ?>
@@ -83,11 +84,31 @@ $nameValue = $user['fio'] ?? $user['full_name'] ?? $user['fullName'] ?? $user['n
         <h3 class="screen_name">Редактирование</h3>
         <div id="message-container"></div>
         <form id="contactForm">
-            <div class="form-group"><label>ФИО *</label><input type="text" id="fullName" name="fullName" value="<?= htmlspecialchars($nameValue) ?>" required></div>
-            <div class="form-group"><label>Email *</label><input type="email" id="email" name="email" value="<?= htmlspecialchars($user['email']) ?>" required></div>
-            <div class="form-group"><label>Телефон</label><input type="tel" id="phone" name="phone" value="<?= htmlspecialchars($user['phone']) ?>"></div>
-            <div class="form-group"><label>Организация</label><input type="text" id="organization" name="organization" value="<?= htmlspecialchars($user['organization']) ?>"></div>
-            <div class="form-group"><label>Сообщение *</label><textarea id="message" name="message" rows="4" required><?= htmlspecialchars($user['message']) ?></textarea></div>
+            <div class="form-group">
+                <label>ФИО *</label>
+                <input type="text" id="fullName" name="fullName" value="<?= htmlspecialchars($nameValue) ?>" required>
+            </div>
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" id="email" name="email" value="<?= htmlspecialchars($user['email']) ?>" required>
+            </div>
+            <div class="form-group">
+                <label>Телефон</label>
+                <input type="tel" id="phone" name="phone" value="<?= htmlspecialchars($user['phone']) ?>">
+            </div>
+            <div class="form-group">
+                <label>Организация</label>
+                <input type="text" id="organization" name="organization" value="<?= htmlspecialchars($user['organization']) ?>">
+            </div>
+            <div class="form-group">
+                <label>Сообщение *</label>
+                <textarea id="message" name="message" rows="4" required><?= htmlspecialchars($user['message']) ?></textarea>
+            </div>
+            <!-- Чекбокс для единообразия, но не валидируется при обновлении -->
+            <div class="checkbox-container">
+                <input type="checkbox" id="privacy" name="privacy" checked disabled>
+                <label for="privacy">Согласие на обработку данных (сохранено при регистрации)</label>
+            </div>
             <button type="submit" id="submit_form" class="form_btn">Сохранить изменения</button>
         </form>
     </div>
