@@ -22,7 +22,6 @@ $flash = $_SESSION['flash_message'] ?? '';
 $errors = $_SESSION['form_errors'] ?? [];
 unset($_SESSION['flash_message'], $_SESSION['form_errors']);
 
-// ФИО может быть в full_name
 $nameValue = $user['full_name'] ?? 'Не указано';
 ?>
 <!DOCTYPE html>
@@ -63,11 +62,7 @@ $nameValue = $user['full_name'] ?? 'Не указано';
 
             <div class="profile-info">
                 <div class="info-row"><span class="info-label">Логин:</span> <code><?= htmlspecialchars($user['login'] ?? '—') ?></code></div>
-                <div class="info-row">
-                    <span class="info-label">Пароль:</span> 
-                    <code title="Пароль показывается только один раз при регистрации">••••••</code>
-                    <small style="display:block;margin-top:4px;color:#888;font-size:12px">не отображается в целях безопасности</small>
-                </div>
+                <div class="info-row"><span class="info-label">Пароль:</span> <code>••••••</code></div>
                 <div class="info-row"><span class="info-label">ФИО:</span> <?= htmlspecialchars($nameValue) ?></div>
                 <div class="info-row"><span class="info-label">Email:</span> <?= htmlspecialchars($user['email'] ?? '—') ?></div>
                 <div class="info-row"><span class="info-label">Телефон:</span> <?= htmlspecialchars($user['phone'] ?? '—') ?></div>
@@ -110,7 +105,7 @@ $nameValue = $user['full_name'] ?? 'Не указано';
             </div>
             <div class="checkbox-container">
                 <input type="checkbox" id="privacy" name="privacy" checked disabled>
-                <label for="privacy">Согласие на обработку данных (сохранено при регистрации)</label>
+                <label for="privacy">Согласие на обработку данных</label>
             </div>
             <button type="submit" id="submit_form" class="form_btn">Сохранить изменения</button>
         </form>
