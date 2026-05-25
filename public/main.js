@@ -28,6 +28,13 @@ document.addEventListener('DOMContentLoaded', function() {
         messageContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
+    function closeForm() {
+        formContainer?.classList.replace('on', 'off');
+        bloom?.classList.replace('on', 'off');
+        document.body.style.overflow = '';
+        isFormOpen = false;
+    }
+
     if (btn) btn.onclick = () => {
         formContainer?.classList.replace('off', 'on');
         bloom?.classList.replace('off', 'on');
@@ -37,13 +44,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (bloom) bloom.onclick = closeForm;
     document.onkeydown = (e) => { if (e.key === 'Escape' && isFormOpen) closeForm(); };
-
-    function closeForm() {
-        formContainer?.classList.replace('on', 'off');
-        bloom?.classList.replace('on', 'off');
-        document.body.style.overflow = '';
-        isFormOpen = false;
-    }
 
     if (contactForm) {
         contactForm.onsubmit = async function(e) {
@@ -93,17 +93,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (res.ok) {
                     if (!isUpdate) {
-                        const html = `
-                            <strong>Регистрация успешна!</strong><br>
-                            Логин: <code>${result.login}</code><br>
-                            Пароль: <code>${result.password}</code><br>
-                            <a href="${result.profile_url}" target="_blank" style="font-weight:bold; color: #007bff;">Перейти в профиль</a>
+                        // регистрация успешна — заменяем форму на страницу с данными
+                        formContainer.innerHTML = `
+                            <div style="text-align:center; padding: 30px 20px;">
+                                <h3 style="margin-bottom: 20px;">Регистрация завершена</h3>
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; text-align: left;">
+                                    <p style="margin: 8px 0;"><strong>Логин:</strong> <code>${result.login}</code></p>
+                                    <p style="margin: 8px 0;"><strong>Пароль:</strong> <code>${result.password}</code></p>
+                                </div>
+                                <a href="${result.profile_url}" class="btn" style="text-decoration:none;">Перейти в профиль</a>
+                            </div>
                         `;
-                        showMessage(html, 'success');
-                        contactForm.reset();
-                        closeForm();
                     } else {
                         showMessage(result.message || 'Данные обновлены', 'success');
+                        setTimeout(closeForm, 1500);
                     }
                 } else {
                     const errors = result.errors 
