@@ -15,15 +15,14 @@ class User {
         $login = 'user_' . bin2hex(random_bytes(2));
         $password = (string)random_int(100000, 999999);
 
-        // Фиксированные поля — если колонки нет в БД, запрос упадёт, это честно
+        // Поля для вставки — только те, что есть в вашей БД
         $fields = [
-            'fio' => $data['fullName'],
+            'full_name' => $data['fullName'],
             'email' => $data['email'],
             'phone' => $data['phone'] ?? '',
             'organization' => $data['organization'] ?? '',
             'message' => $data['message'],
             'login' => $login,
-            'password' => $password,
             'password_hash' => password_hash($password, PASSWORD_DEFAULT)
         ];
 
@@ -52,12 +51,14 @@ class User {
         $stmt->execute($values);
 
         $id = (int)$this->pdo->lastInsertId();
+
+        // Возвращаем логин и ПАРОЛЬ В ОТКРЫТОМ ВИДЕ (только один раз, при регистрации)
         return ['id' => $id, 'login' => $login, 'password' => $password];
     }
 
     public function update(int $id, array $data): bool {
         $fields = [
-            'fio' => $data['fullName'],
+            'full_name' => $data['fullName'],
             'email' => $data['email'],
             'phone' => $data['phone'] ?? '',
             'organization' => $data['organization'] ?? '',
