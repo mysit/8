@@ -1,7 +1,6 @@
 <?php
 if (!isset($_SESSION)) session_start();
 if (!defined('ENTRY_POINT')) {
-    // Защита от прямого доступа
     $target = '/8/public/index.php' . ($_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STRING'] : '');
     header('Location: ' . $target);
     exit;
