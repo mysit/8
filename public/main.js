@@ -86,8 +86,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 try {
                     result = JSON.parse(textResponse);
                 } catch (e) {
-                    console.error('Сервер вернул не JSON:', textResponse);
-                    throw new Error('Ошибка сервера: неверный формат ответа');
+                    const preview = textResponse.substring(0, 200).replace(/</g, '&lt;');
+                    console.error('Сервер вернул не JSON:', preview);
+                    throw new Error('Ошибка сервера. Проверьте консоль или логи.');
                 }
 
                 if (res.ok) {
