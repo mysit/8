@@ -1,160 +1,124 @@
-<?php
-session_start();
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById("btn_form");
+    const formContainer = document.getElementById("form-container");
+    const bloom = document.getElementById("bloom");
+    const contactForm = document.getElementById("contactForm");
+    const submitBtn = document.getElementById("submit_form");
+    const messageContainer = document.getElementById('message-container');
 
-define('ENTRY_POINT', true);
+    const fields = {
+        fullName: document.getElementById('fullName'),
+        email: document.getElementById('email'),
+        phone: document.getElementById('phone'),
+        organization: document.getElementById('organization'),
+        message: document.getElementById('message'),
+        privacy: document.getElementById('privacy')
+    };
 
-// Автолоад классов
-spl_autoload_register(function ($class) {
-    $prefix = 'App\\';
-    $base_dir = __DIR__ . '/../src/';
-    $len = strlen($prefix);
-    if (strncmp($prefix, $class, $len) !== 0) return;
-    $relative_class = substr($class, $len);
-    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
-    if (file_exists($file)) { require $file; }
+    let isFormOpen = false;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentUserId = urlParams.get('id') || (formContainer?.dataset.userId);
+
+    function showMessage(html, type = 'success') {
+        if (!messageContainer) return;
+        messageContainer.innerHTML = html;
+        messageContainer.style.display = 'block';
+        messageContainer.className = type === 'success' ? 'success-box' : 'error-box';
+        messageContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    if (btn) btn.onclick = () => {
+        formContainer?.classList.replace('off', 'on');
+        bloom?.classList.replace('off', 'on');
+        document.body.style.overflow = 'hidden';
+        isFormOpen = true;
+    };
+
+    if (bloom) bloom.onclick = closeForm;
+    document.onkeydown = (e) => { if (e.key === 'Escape' && isFormOpen) closeForm(); };
+
+    function closeForm() {
+        formContainer?.classList.replace('on', 'off');
+        bloom?.classList.replace('on', 'off');
+        document.body.style.overflow = '';
+        isFormOpen = false;
+    }
+
+    if (contactForm) {
+        contactForm.onsubmit = async function(e) {
+            e.preventDefault();
+            
+            if (messageContainer) messageContainer.style.display = 'none';
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = currentUserId ? 'Сохранение...' : 'Отправка...';
+            }
+
+            const formData = {};
+            for (const [key, el] of Object.entries(fields)) {
+                if (!el) continue;
+                if (el.type === 'checkbox') {
+                    formData[key] = el.checked ? '1' : '0';
+                } else {
+                    formData[key] = el.value.trim();
+                }
+            }
+
+            const isUpdate = !!currentUserId;
+            const endpoint = `/8/public/api/users${isUpdate ? '/' + currentUserId : ''}`;
+            const method = isUpdate ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetch(endpoint, {
+                    method,
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest' 
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const textResponse = await res.text();
+                let result;
+
+                try {
+                    result = JSON.parse(textResponse);
+                } catch (e) {
+                    console.error('Сервер вернул не JSON:', textResponse);
+                    throw new Error('Ошибка сервера: неверный формат ответа');
+                }
+
+                if (res.ok) {
+                    if (!isUpdate) {
+                        const html = `
+                            <strong>Регистрация успешна!</strong><br>
+                            Логин: <code>${result.login}</code><br>
+                            Пароль: <code>${result.password}</code><br>
+                            <a href="${result.profile_url}" target="_blank" style="font-weight:bold; color: #007bff;">Перейти в профиль</a>
+                        `;
+                        showMessage(html, 'success');
+                        contactForm.reset();
+                        closeForm();
+                    } else {
+                        showMessage(result.message || 'Данные обновлены', 'success');
+                    }
+                } else {
+                    const errors = result.errors 
+                        ? Object.values(result.errors).join('<br>') 
+                        : (result.message || 'Произошла ошибка');
+                    showMessage(errors, 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showMessage(`Ошибка: ${err.message}`, 'error');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = currentUserId ? 'Сохранить изменения' : 'Отправить форму';
+                }
+            }
+        };
+    }
 });
-?>
-<?php
-use App\Models\User;
-use App\Services\Validator;
-
-$requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-
-// Очищаем префиксы
-$badPatterns = ['/8/public/index.php', '/8/public', '/8'];
-foreach ($badPatterns as $pattern) {
-    if (strpos($requestUri, $pattern) === 0) {
-        $requestUri = substr($requestUri, strlen($pattern));
-        break;
-    }
-}
-if (empty($requestUri) || $requestUri === '//') {
-    $requestUri = '/';
-}
-
-$requestMethod = $_SERVER['REQUEST_METHOD'];
-if ($requestMethod === 'POST' && isset($_POST['_method'])) {
-    $requestMethod = strtoupper($_POST['_method']);
-}
-
-// Парсинг входных данных
-$contentType = $_SERVER['CONTENT_TYPE'] ?? '';
-$inputData = [];
-if (str_contains($contentType, 'application/json')) {
-    $inputData = json_decode(file_get_contents('php://input'), true) ?? [];
-} elseif (str_contains($contentType, 'application/xml') || str_contains($contentType, 'text/xml')) {
-    $xml = simplexml_load_string(file_get_contents('php://input'));
-    if ($xml) {
-        $inputData = json_decode(json_encode((array)$xml), true);
-    }
-} else {
-    $inputData = $_POST;
-}
-
-$userModel = new User();
-
-// === REST API ===
-
-// POST /api/users — регистрация
-if ($requestUri === '/api/users' && $requestMethod === 'POST') {
-    header('Content-Type: application/json');
-    $errors = Validator::validate($inputData);
-    if (!empty($errors)) {
-        http_response_code(422);
-        echo json_encode(['status' => 'error', 'errors' => $errors]);
-        exit;
-    }
-    $newUser = $userModel->create($inputData);
-    $_SESSION['user_id'] = $newUser['id'];
-    
-    echo json_encode([
-        'status' => 'success',
-        'id' => $newUser['id'],
-        'login' => $newUser['login'],
-        'password' => $newUser['password'],
-        'profile_url' => '/8/public/profile?id=' . $newUser['id']
-    ]);
-    exit;
-}
-
-// PUT /api/users/{id} — обновление
-if (preg_match('#^/api/users/(\d+)$#', $requestUri, $m) && $requestMethod === 'PUT') {
-    header('Content-Type: application/json');
-    $userId = (int)$m[1];
-    
-    if (!isset($_SESSION['user_id']) || (int)$_SESSION['user_id'] !== $userId) {
-        http_response_code(403);
-        echo json_encode(['status' => 'error', 'message' => 'Доступ запрещён']);
-        exit;
-    }
-    
-    $errors = Validator::validate($inputData, true);
-    if (!empty($errors)) {
-        http_response_code(422);
-        echo json_encode(['status' => 'error', 'errors' => $errors]);
-        exit;
-    }
-    
-    $userModel->update($userId, $inputData);
-    echo json_encode(['status' => 'success', 'message' => 'Данные обновлены']);
-    exit;
-}
-
-// === FALLBACK ===
-
-// POST /register-fallback
-if ($requestUri === '/register-fallback' && $requestMethod === 'POST') {
-    $errors = Validator::validate($inputData);
-    if (!empty($errors)) {
-        $_SESSION['form_errors'] = $errors;
-        $_SESSION['old_data'] = $inputData;
-        header('Location: /8/public/');
-        exit;
-    }
-    $newUser = $userModel->create($inputData);
-    $_SESSION['user_id'] = $newUser['id'];
-    header('Location: /8/public/profile?id=' . $newUser['id']);
-    exit;
-}
-
-// PUT /update-fallback
-if ($requestUri === '/update-fallback' && $requestMethod === 'PUT') {
-    $userId = (int)($inputData['user_id'] ?? 0);
-    
-    if (!isset($_SESSION['user_id']) || (int)$_SESSION['user_id'] !== $userId) {
-        $_SESSION['form_errors'] = ['Доступ запрещён'];
-        header('Location: /8/public/profile?id=' . $userId);
-        exit;
-    }
-    
-    $errors = Validator::validate($inputData, true);
-    if (!empty($errors)) {
-        $_SESSION['form_errors'] = $errors;
-        header('Location: /8/public/profile?id=' . $userId);
-        exit;
-    }
-    
-    $userModel->update($userId, $inputData);
-    $_SESSION['flash_message'] = 'Данные успешно обновлены!';
-    header('Location: /8/public/profile?id=' . $userId);
-    exit;
-}
-
-// === HTML-страницы ===
-header_remove('Content-Type');
-
-if ($requestUri === '/' || $requestUri === '') {
-    include __DIR__ . '/../src/Views/registration.php';
-    exit;
-}
-
-if ($requestUri === '/profile') {
-    include __DIR__ . '/../src/Views/profile.php';
-    exit;
-}
-
-http_response_code(404);
-echo "404 — Страница не найдена: " . htmlspecialchars($requestUri);
-?>
