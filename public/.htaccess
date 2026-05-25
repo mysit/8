@@ -1,4 +1,3 @@
-# public/.htaccess
 RewriteEngine On
 
 # Разрешаем доступ к статике
@@ -14,7 +13,7 @@ RewriteRule ^ - [L]
 # Всё остальное — на index.php
 RewriteRule ^ index.php [QSA,L]
 
-# Разрешаем доступ к index.php
+# Явно разрешаем index.php
 <Files "index.php">
     Require all granted
 </Files>
