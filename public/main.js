@@ -27,6 +27,8 @@ document.addEventListener('DOMContentLoaded', function() {
         messageContainer.innerHTML = html;
         messageContainer.style.display = 'block';
         messageContainer.className = type === 'success' ? 'success-box' : 'error-box';
+        // Скролл к сообщению
+        messageContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     // Открытие/закрытие модального окна
@@ -52,48 +54,52 @@ document.addEventListener('DOMContentLoaded', function() {
         contactForm.onsubmit = async function(e) {
             e.preventDefault();
             
-            // Сброс предыдущих ошибок
-            if (messageContainer) {
-                messageContainer.style.display = 'none';
-            }
+            // Скрываем предыдущие сообщения
+            if (messageContainer) messageContainer.style.display = 'none';
 
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.textContent = currentUserId ? 'Сохранение...' : 'Отправка...';
             }
 
-            // Сбор данных с явной обработкой чекбокса
+            // Сбор данных
             const formData = {};
-            
-            if (fields.fullName) formData.fullName = fields.fullName.value.trim();
-            if (fields.email) formData.email = fields.email.value.trim();
-            if (fields.phone) formData.phone = fields.phone.value.trim();
-            if (fields.organization) formData.organization = fields.organization.value.trim();
-            if (fields.message) formData.message = fields.message.value.trim();
-            
-            // Критически важная часть: корректная отправка чекбокса
-            if (fields.privacy) {
-                formData.privacy = fields.privacy.checked ? '1' : '0';
-            } else {
-                formData.privacy = '0';
+            for (const [key, el] of Object.entries(fields)) {
+                if (!el) continue;
+                if (el.type === 'checkbox') {
+                    formData[key] = el.checked ? '1' : '0';
+                } else {
+                    formData[key] = el.value.trim();
+                }
             }
+
+            console.log('Отправка данных:', formData);
 
             // Определяем метод и endpoint
             const isUpdate = !!currentUserId;
             const endpoint = `/8/public/api/users${isUpdate ? '/' + currentUserId : ''}`;
             const method = isUpdate ? 'PUT' : 'POST';
 
-            console.log('Отправка данных:', formData); // Для отладки
-
             try {
                 const res = await fetch(endpoint, {
                     method,
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest' 
+                    },
                     body: JSON.stringify(formData)
                 });
-                
-                const result = await res.json();
-                console.log('Ответ сервера:', result);
+
+                const textResponse = await res.text();
+                let result;
+
+                // Попытка распарсить JSON
+                try {
+                    result = JSON.parse(textResponse);
+                } catch (e) {
+                    console.error('Сервер вернул не JSON:', textResponse);
+                    throw new Error('Ошибка сервера: неверный формат ответа. Проверьте логи PHP.');
+                }
 
                 if (res.ok) {
                     if (!isUpdate) {
@@ -102,23 +108,23 @@ document.addEventListener('DOMContentLoaded', function() {
                             <strong>✅ Регистрация успешна!</strong><br>
                             Логин: <code>${result.login}</code><br>
                             Пароль: <code>${result.password}</code><br>
-                            <a href="${result.profile_url}" style="font-weight:bold">→ Перейти в профиль</a>
+                            <a href="${result.profile_url}" target="_blank" style="font-weight:bold; color: #007bff;">→ Перейти в профиль</a>
                         `;
                         showMessage(html, 'success');
                         contactForm.reset();
-                        setTimeout(closeForm, 5000); // Закрыть через 5 сек
+                        closeForm();
                     } else {
                         showMessage(result.message || '✅ Данные обновлены!', 'success');
                     }
                 } else {
                     const errors = result.errors 
                         ? Object.values(result.errors).join('<br>') 
-                        : (result.message || 'Ошибка сервера');
+                        : (result.message || 'Произошла неизвестная ошибка.');
                     showMessage(errors, 'error');
                 }
             } catch (err) {
-                console.error('Ошибка сети:', err);
-                showMessage(`🌐 Ошибка сети: ${err.message}`, 'error');
+                console.error(err);
+                showMessage(`⚠️ ${err.message}`, 'error');
             } finally {
                 if (submitBtn) {
                     submitBtn.disabled = false;
