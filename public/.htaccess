@@ -1,13 +1,16 @@
 RewriteEngine On
 
-<FilesMatch "\.(css|js|png|jpg|gif|ico|svg|webp|txt)$">
+# Статика — отдаём как есть
+<FilesMatch "\.(css|js|png|jpg|gif|ico|svg|webp|txt|webm|mp4)$">
     Require all granted
 </FilesMatch>
 
+# Если файл или папка есть — не трогаем
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
+# Всё остальное — на index.php
 RewriteRule ^ index.php [QSA,L]
 
 <Files "index.php">
