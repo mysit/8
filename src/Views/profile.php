@@ -19,8 +19,9 @@ $nameValue = $user['fio'] ?? $user['full_name'] ?? $user['fullName'] ?? $user['n
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <base href="/8/public/">
     <title>Профиль пользователя</title>
-    <link rel="stylesheet" href="/8/public/style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="card" style="background:#fff;max-width:600px;margin:40px auto;padding:25px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.1)">
