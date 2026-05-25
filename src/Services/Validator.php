@@ -23,9 +23,9 @@ class Validator {
         }
 
         // Privacy checkbox — только при регистрации
-        // Проверяем наличие ключа И что его значение равно '1'
+        // Проверяем, равно ли значение строго '1'
         if (!$isUpdate) {
-            $privacyValue = $data['privacy'] ?? '0'; // Если ключа нет, считаем что это '0'
+            $privacyValue = $data['privacy'] ?? '0';
             if ($privacyValue !== '1') {
                 $errors['privacy'] = 'Необходимо согласие на обработку персональных данных.';
             }
