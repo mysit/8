@@ -28,20 +28,21 @@ document.addEventListener('DOMContentLoaded', function() {
         messageContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
+    function openForm() {
+        formContainer?.classList.add('on');
+        bloom?.classList.add('on');
+        document.body.style.overflow = 'hidden';
+        isFormOpen = true;
+    }
+
     function closeForm() {
-        formContainer?.classList.replace('on', 'off');
-        bloom?.classList.replace('on', 'off');
+        formContainer?.classList.remove('on');
+        bloom?.classList.remove('on');
         document.body.style.overflow = '';
         isFormOpen = false;
     }
 
-    if (btn) btn.onclick = () => {
-        formContainer?.classList.replace('off', 'on');
-        bloom?.classList.replace('off', 'on');
-        document.body.style.overflow = 'hidden';
-        isFormOpen = true;
-    };
-
+    if (btn) btn.onclick = openForm;
     if (bloom) bloom.onclick = closeForm;
     document.onkeydown = (e) => { if (e.key === 'Escape' && isFormOpen) closeForm(); };
 
@@ -93,7 +94,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (res.ok) {
                     if (!isUpdate) {
-                        // регистрация успешна — заменяем форму на страницу с данными
                         formContainer.innerHTML = `
                             <div style="text-align:center; padding: 30px 20px;">
                                 <h3 style="margin-bottom: 20px;">Регистрация завершена</h3>
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <p style="margin: 8px 0;"><strong>Логин:</strong> <code>${result.login}</code></p>
                                     <p style="margin: 8px 0;"><strong>Пароль:</strong> <code>${result.password}</code></p>
                                 </div>
-                                <a href="${result.profile_url}" class="btn" style="text-decoration:none;">Перейти в профиль</a>
+                                <a href="${result.profile_url}" class="btn" style="text-decoration:none; display:inline-block;">Перейти в профиль</a>
                             </div>
                         `;
                     } else {
