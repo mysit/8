@@ -2,8 +2,7 @@
 if (!isset($_SESSION)) session_start();
 if (!defined('ENTRY_POINT')) {
     $target = '/8/public/index.php' . ($_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STRING'] : '');
-    header('Location: ' . $target);
-    exit;
+    header('Location: ' . $target); exit;
 }
 $errors = $_SESSION['form_errors'] ?? [];
 $old = $_SESSION['old_data'] ?? [];
@@ -55,27 +54,12 @@ unset($_SESSION['form_errors'], $_SESSION['old_data']);
     <div class="sec_screen" id="fsc">
         <h2 class="screen_name">Наши котики</h2>
         <div class="cards">
-            <div class="card">
-                <h2 class="screen_name">Разные породы</h2>
-                <p class="card_text">Мы имеем более 50 кошек разных пород, обязательно найдете то, что нужно!</p>
-            </div>
-            <div class="card">
-                <h2 class="screen_name">Здоровые котики</h2>
-                <p class="card_text">Наши котики проходят все медицинские услуги, необходимые для комфортной жизни здорового котика!</p>
-            </div>
-            <div class="card">
-                <h2 class="screen_name">Поддержка клиентов</h2>
-                <p class="card_text">Наша команда поможет вам со всеми вопросами касательно котиков!!!</p>
-            </div>
-            <div class="card">
-                <h2 class="screen_name">Быстрая доставка</h2>
-                <p class="card_text">Самая быстрая доставка в пункты выдачи или курьером</p>
-            </div>
+            <div class="card"><h2 class="screen_name">Разные породы</h2><p class="card_text">Мы имеем более 50 кошек разных пород, обязательно найдете то, что нужно!</p></div>
+            <div class="card"><h2 class="screen_name">Здоровые котики</h2><p class="card_text">Наши котики проходят все медицинские услуги, необходимые для комфортной жизни здорового котика!</p></div>
+            <div class="card"><h2 class="screen_name">Поддержка клиентов</h2><p class="card_text">Наша команда поможет вам со всеми вопросами касательно котиков!!!</p></div>
+            <div class="card"><h2 class="screen_name">Быстрая доставка</h2><p class="card_text">Самая быстрая доставка в пункты выдачи или курьером</p></div>
         </div>
-        <div class="card" id="card5">
-            <h2 class="screen_name">Лучшие котики</h2>
-            <p class="card_text">Наши котики самые лучшие на свете!</p>
-        </div>
+        <div class="card" id="card5"><h2 class="screen_name">Лучшие котики</h2><p class="card_text">Наши котики самые лучшие на свете!</p></div>
     </div>
 
     <div class="slider-container" id="ss">
@@ -103,59 +87,28 @@ unset($_SESSION['form_errors'], $_SESSION['old_data']);
         <div class="form" id="form-container">
             <form id="contactForm" action="/8/public/register-fallback" method="POST">
                 <?php if (!empty($errors)): ?>
-                    <div class="error-box" style="background:#f8d7da;color:#721c24;padding:10px;margin:10px 0;border-radius:4px">
-                        <?= implode('<br>', array_map('htmlspecialchars', $errors)) ?>
-                    </div>
+                    <div class="error-box"><?= implode('<br>', array_map('htmlspecialchars', $errors)) ?></div>
                 <?php endif; ?>
-
-                <div class="form-group">
-                    <label for="fullName" class="required">ФИО</label>
-                    <input type="text" id="fullName" name="fullName" required placeholder="Введите ваше полное имя" value="<?= htmlspecialchars($old['fullName'] ?? '') ?>">
-                </div>
-                <div class="form-group">
-                    <label for="email" class="required">Email</label>
-                    <input type="email" id="email" name="email" required placeholder="example@domain.com" value="<?= htmlspecialchars($old['email'] ?? '') ?>">
-                </div>
-                <div class="form-group">
-                    <label for="phone">Телефон</label>
-                    <input type="tel" id="phone" name="phone" placeholder="+7 (XXX) XXX-XX-XX" value="<?= htmlspecialchars($old['phone'] ?? '') ?>">
-                </div>
-                <div class="form-group">
-                    <label for="message" class="required">Сообщение</label>
-                    <textarea id="message" name="message" required placeholder="Опишите ваш вопрос или предложение..."><?= htmlspecialchars($old['message'] ?? '') ?></textarea>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="privacy" name="privacy" required <?= isset($old['privacy']) ? 'checked' : '' ?>>
-                    <label for="privacy">Я согласен с политикой обработки персональных данных</label>
-                </div>
+                <div class="form-group"><label for="fullName" class="required">ФИО</label><input type="text" id="fullName" name="fullName" required placeholder="Введите ваше полное имя" value="<?= htmlspecialchars($old['fullName'] ?? '') ?>"></div>
+                <div class="form-group"><label for="email" class="required">Email</label><input type="email" id="email" name="email" required placeholder="example@domain.com" value="<?= htmlspecialchars($old['email'] ?? '') ?>"></div>
+                <div class="form-group"><label for="phone">Телефон</label><input type="tel" id="phone" name="phone" placeholder="+7 (XXX) XXX-XX-XX" value="<?= htmlspecialchars($old['phone'] ?? '') ?>"></div>
+                <div class="form-group"><label for="message" class="required">Сообщение</label><textarea id="message" name="message" required placeholder="Опишите ваш вопрос или предложение..."><?= htmlspecialchars($old['message'] ?? '') ?></textarea></div>
+                <div class="checkbox-container"><input type="checkbox" id="privacy" name="privacy" required <?= isset($old['privacy']) ? 'checked' : '' ?>><label for="privacy">Я согласен с политикой обработки персональных данных</label></div>
                 <button type="submit" id="submit_form" class="form_btn">отправить форму</button>
             </form>
         </div>
     </div>
 
     <footer>
-        <div class="foo_block">
-            <h3>Коты</h3>
-            <p>служба доставки котиков по всей россии</p>
-        </div>
-        <div class="foo_block">
-            <h3>Контакты</h3>
-            <p>г.Краснодар, ул.Котовского</p>
-            <p>+7 (495) 123-45-67</p>
-            <p>info@kotiki.ru</p>
-        </div>
+        <div class="foo_block"><h3>Коты</h3><p>служба доставки котиков по всей россии</p></div>
+        <div class="foo_block"><h3>Контакты</h3><p>г.Краснодар, ул.Котовского</p><p>+7 (495) 123-45-67</p><p>info@kotiki.ru</p></div>
     </footer>
 
     <script src="/8/public/menu.js"></script>
     <script src="/8/public/slider.js"></script>
     <script src="/8/public/main.js"></script>
     <script>
-    function scrollToAnchor(anchorId) {
-        const element = document.getElementById(anchorId);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    }
+    function scrollToAnchor(id){const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
     </script>
 </body>
 </html>
