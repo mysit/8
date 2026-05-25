@@ -60,7 +60,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = Object.fromEntries(
                 Object.entries(fields)
                     .filter(([_, el]) => el)
-                    .map(([key, el]) => [key, el.value])
+                    .map(([key, el]) => {
+                        if (el.type === 'checkbox') {
+                            return [key, el.checked ? '1' : '0'];
+                        }
+                        return [key, el.value];
+                    })
             );
 
             // Определяем метод и endpoint
@@ -80,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (!isUpdate) {
                         // Регистрация — показываем логин/пароль
                         const html = `
-                            <strong>✅ Регистрация успешна!</strong><br>
+                            <strong>Регистрация успешна</strong><br>
                             Логин: <code>${result.login}</code><br>
                             Пароль: <code>${result.password}</code><br>
                             <a href="${result.profile_url}" style="font-weight:bold">→ Перейти в профиль</a>
@@ -88,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         showMessage(html, 'success');
                         contactForm.reset();
                     } else {
-                        showMessage(result.message || '✅ Данные обновлены!', 'success');
+                        showMessage(result.message || 'Данные обновлены', 'success');
                     }
                 } else {
                     const errors = result.errors 
@@ -97,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     showMessage(errors, 'error');
                 }
             } catch (err) {
-                showMessage(`🌐 Ошибка сети: ${err.message}`, 'error');
+                showMessage(`Ошибка сети: ${err.message}`, 'error');
             } finally {
                 if (submitBtn) {
                     submitBtn.disabled = false;
