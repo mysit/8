@@ -1,5 +1,11 @@
 <?php
 if (!isset($_SESSION)) session_start();
+if (!defined('ENTRY_POINT')) {
+    // Защита от прямого доступа
+    $target = '/8/public/index.php' . ($_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STRING'] : '');
+    header('Location: ' . $target);
+    exit;
+}
 $errors = $_SESSION['form_errors'] ?? [];
 $old = $_SESSION['old_data'] ?? [];
 unset($_SESSION['form_errors'], $_SESSION['old_data']);
@@ -21,7 +27,6 @@ unset($_SESSION['form_errors'], $_SESSION['old_data']);
 
 <div class="bloom" id="bloom"></div>
 <div class="form" id="form-container">
-    <!-- ✅ Правильный action: регистрация → register-fallback -->
     <form id="contactForm" action="/8/public/register-fallback" method="POST">
         <?php if (!empty($errors)): ?>
             <div style="background:#f8d7da;color:#721c24;padding:10px;margin:10px 0;border-radius:4px">
