@@ -1,58 +1,59 @@
 <?php
 session_start();
 
-// Автолоад классов
+// Автолоад
 spl_autoload_register(function ($class) {
     $prefix = 'App\\';
-    $base_dir = __DIR__ . '/../src/';
-    $len = strlen($prefix);
-    if (strncmp($prefix, $class, $len) !== 0) return;
-    $relative_class = substr($class, $len);
-    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
-    if (file_exists($file)) { require $file; }
+    $base = __DIR__ . '/../src/';
+    if (strncmp($prefix, $class, strlen($prefix)) !== 0) return;
+    $file = $base . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
+    if (file_exists($file)) require $file;
 });
 
-use App\Services\Validator;
 use App\Models\User;
+use App\Services\Validator;
 
+// === РОУТИНГ ===
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-
-// Очищаем префиксы КубГУ для правильной работы роутера
-$badPatterns = ['/8/public/index.php', '/8/public', '/8'];
-foreach ($badPatterns as $pattern) {
-    if (strpos($requestUri, $pattern) === 0) {
-        $requestUri = substr($requestUri, strlen($pattern));
+$basePatterns = ['/8/public/index.php', '/8/public', '/8'];
+foreach ($basePatterns as $p) {
+    if (str_starts_with($requestUri, $p)) {
+        $requestUri = substr($requestUri, strlen($p));
         break;
     }
 }
-if (empty($requestUri) || $requestUri === '//') {
-    $requestUri = '/';
+$requestUri = empty($requestUri) || $requestUri === '/' ? '/' : rtrim($requestUri, '/');
+
+// Метод запроса (поддержка _method для fallback)
+$method = $_SERVER['REQUEST_METHOD'];
+if ($method === 'POST' && isset($_POST['_method'])) {
+    $method = strtoupper($_POST['_method']);
 }
 
-$requestMethod = $_SERVER['REQUEST_METHOD'];
-if ($requestMethod === 'POST' && isset($_POST['_method'])) {
-    $requestMethod = strtoupper($_POST['_method']);
-}
-
-// Считываем данные
-$contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+// Парсинг входных данных: JSON, XML или form-data
 $inputData = [];
+$contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+
 if (str_contains($contentType, 'application/json')) {
     $inputData = json_decode(file_get_contents('php://input'), true) ?? [];
+} elseif (str_contains($contentType, 'application/xml') || str_contains($contentType, 'text/xml')) {
+    $xml = simplexml_load_string(file_get_contents('php://input'));
+    if ($xml) {
+        $inputData = json_decode(json_encode((array)$xml), true);
+    }
 } else {
     $inputData = $_POST;
 }
 
-// Инициализируем модель пользователя
 $userModel = new User();
+header('Content-Type: application/json');
 
-// --- REST API МАРШРУТЫ ---
+// === REST API ===
 
-// 1. POST /api/users (Регистрация с JS)
-if ($requestUri === '/api/users' && $requestMethod === 'POST') {
-    header('Content-Type: application/json');
+// POST /api/users — регистрация
+if ($requestUri === '/api/users' && $method === 'POST') {
     $errors = Validator::validate($inputData);
-    if (!empty($errors)) {
+    if ($errors) {
         http_response_code(422);
         echo json_encode(['status' => 'error', 'errors' => $errors]);
         exit;
@@ -70,32 +71,35 @@ if ($requestUri === '/api/users' && $requestMethod === 'POST') {
     exit;
 }
 
-// 2. PUT /api/users/{id} (Обновление с JS)
-if (preg_match('/^\/api\/users\/(\d+)$/', $requestUri, $matches) && $requestMethod === 'PUT') {
-    header('Content-Type: application/json');
-    $userId = (int)$matches[1];
-
-    // Жестко приравниваем сессию к ID, убирая любые конфликты старых кук и сбросов
-    $_SESSION['user_id'] = $userId;
-
-    $errors = Validator::validate($inputData);
-    if (!empty($errors)) {
+// PUT /api/users/{id} — обновление (только свой профиль!)
+if (preg_match('#^/api/users/(\d+)$#', $requestUri, $m) && $method === 'PUT') {
+    $userId = (int)$m[1];
+    
+    // 🔐 Проверка авторизации
+    if (!isset($_SESSION['user_id']) || (int)$_SESSION['user_id'] !== $userId) {
+        http_response_code(403);
+        echo json_encode(['status' => 'error', 'message' => 'Доступ запрещён']);
+        exit;
+    }
+    
+    $errors = Validator::validate($inputData, true);
+    if ($errors) {
         http_response_code(422);
         echo json_encode(['status' => 'error', 'errors' => $errors]);
         exit;
     }
-
+    
     $userModel->update($userId, $inputData);
-    echo json_encode(['status' => 'success', 'message' => 'Данные успешно обновлены через API!']);
+    echo json_encode(['status' => 'success', 'message' => 'Данные обновлены']);
     exit;
 }
 
-// --- FALLBACK МАРШРУТЫ (БЕЗ JS) ---
+// === FALLBACK (без JS) ===
 
-// 3. POST /register-fallback
-if ($requestUri === '/register-fallback' && $requestMethod === 'POST') {
+// POST /register-fallback
+if ($requestUri === '/register-fallback' && $method === 'POST') {
     $errors = Validator::validate($inputData);
-    if (!empty($errors)) {
+    if ($errors) {
         $_SESSION['form_errors'] = $errors;
         $_SESSION['old_data'] = $inputData;
         header('Location: /8/public/');
@@ -107,27 +111,33 @@ if ($requestUri === '/register-fallback' && $requestMethod === 'POST') {
     exit;
 }
 
-// 4. PUT /update-fallback
-if ($requestUri === '/update-fallback' && $requestMethod === 'PUT') {
+// POST /update-fallback (с _method=PUT)
+if ($requestUri === '/update-fallback' && $method === 'PUT') {
     $userId = (int)($inputData['user_id'] ?? 0);
     
-    // Аналогично: убираем проверку, принудительно доверяем форме
-    $_SESSION['user_id'] = $userId;
+    if (!isset($_SESSION['user_id']) || (int)$_SESSION['user_id'] !== $userId) {
+        $_SESSION['form_errors'] = ['Доступ запрещён'];
+        header('Location: /8/public/profile?id=' . $userId);
+        exit;
+    }
     
-    $errors = Validator::validate($inputData);
-    if (!empty($errors)) {
+    $errors = Validator::validate($inputData, true);
+    if ($errors) {
         $_SESSION['form_errors'] = $errors;
         header('Location: /8/public/profile?id=' . $userId);
         exit;
     }
+    
     $userModel->update($userId, $inputData);
     $_SESSION['flash_message'] = 'Данные успешно обновлены!';
     header('Location: /8/public/profile?id=' . $userId);
     exit;
 }
 
-// --- СТРАНИЦЫ HTML ---
-if ($requestUri === '/' || $requestUri === '/index.html') {
+// === HTML-страницы ===
+header_remove('Content-Type'); // убираем JSON для HTML
+
+if ($requestUri === '/' || $requestUri === '') {
     include __DIR__ . '/../src/Views/registration.php';
     exit;
 }
@@ -137,5 +147,6 @@ if ($requestUri === '/profile') {
     exit;
 }
 
+// 404
 http_response_code(404);
-echo "Страница не найдена. Запрошенный путь: " . htmlspecialchars($requestUri);
+echo "404 — Страница не найдена: " . htmlspecialchars($requestUri);
