@@ -1,19 +1,15 @@
 RewriteEngine On
 
-# Разрешаем доступ к статике
 <FilesMatch "\.(css|js|png|jpg|gif|ico|svg|webp|txt)$">
     Require all granted
 </FilesMatch>
 
-# Если файл или папка существуют — отдаём их
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# Всё остальное — на index.php
 RewriteRule ^ index.php [QSA,L]
 
-# Явно разрешаем index.php
 <Files "index.php">
     Require all granted
 </Files>
