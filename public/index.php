@@ -52,7 +52,7 @@ if (str_contains($contentType, 'application/json')) {
 
 $userModel = new User();
 
-// POST /api/users
+// POST /api/users — регистрация
 if ($requestUri === '/api/users' && $requestMethod === 'POST') {
     header('Content-Type: application/json');
     try {
@@ -80,7 +80,7 @@ if ($requestUri === '/api/users' && $requestMethod === 'POST') {
     exit;
 }
 
-// PUT /api/users/{id}
+// PUT /api/users/{id} — обновление
 if (preg_match('#^/api/users/(\d+)$#', $requestUri, $m) && $requestMethod === 'PUT') {
     header('Content-Type: application/json');
     try {
@@ -109,7 +109,7 @@ if (preg_match('#^/api/users/(\d+)$#', $requestUri, $m) && $requestMethod === 'P
     exit;
 }
 
-// fallback registration
+// fallback registration (no JS)
 if ($requestUri === '/register-fallback' && $requestMethod === 'POST') {
     $errors = Validator::validate($inputData);
     if (!empty($errors)) {
@@ -124,7 +124,7 @@ if ($requestUri === '/register-fallback' && $requestMethod === 'POST') {
     exit;
 }
 
-// fallback update
+// fallback update (no JS)
 if ($requestUri === '/update-fallback' && $requestMethod === 'PUT') {
     $userId = (int)($inputData['user_id'] ?? 0);
     
@@ -147,7 +147,7 @@ if ($requestUri === '/update-fallback' && $requestMethod === 'PUT') {
     exit;
 }
 
-// html pages
+// HTML pages
 header_remove('Content-Type');
 
 if ($requestUri === '/' || $requestUri === '') {
