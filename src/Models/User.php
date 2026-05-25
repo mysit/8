@@ -36,7 +36,8 @@ class User {
             'organization' => $data['organization'] ?? '',
             'message' => $data['message'],
             'login' => $login,
-            'password' => $password
+            'password' => $password,
+            'password_hash' => password_hash($password, PASSWORD_DEFAULT)
         ];
 
         $columns = $this->getTableColumns();
