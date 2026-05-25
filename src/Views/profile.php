@@ -1,14 +1,12 @@
 <?php
 if (!isset($_SESSION)) session_start();
 
-// Если нет доступа — редирект
 $userId = (int)($_GET['id'] ?? $_SESSION['user_id'] ?? 0);
 if (!$userId) {
     header('Location: /8/public/');
     exit;
 }
 
-// Получаем пользователя через модель
 require_once __DIR__ . '/../Models/User.php';
 use App\Models\User;
 
@@ -19,14 +17,12 @@ if (!$user) {
     die("Пользователь не найден. <a href='/8/public/'>На главную</a>");
 }
 
-// Проверка прав на редактирование
 $canEdit = isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === $userId;
 
 $flash = $_SESSION['flash_message'] ?? '';
 $errors = $_SESSION['form_errors'] ?? [];
 unset($_SESSION['flash_message'], $_SESSION['form_errors']);
 
-// Определяем колонку ФИО
 $nameValue = $user['fio'] ?? $user['full_name'] ?? $user['fullName'] ?? $user['name'] ?? '';
 ?>
 <!DOCTYPE html>
