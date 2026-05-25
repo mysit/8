@@ -22,7 +22,7 @@ class User {
                 return;
             }
         }
-        $this->nameColumn = 'fio'; // fallback
+        $this->nameColumn = 'fio';
     }
 
     public function create(array $data): array {
