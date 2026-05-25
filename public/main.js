@@ -1,117 +1,109 @@
 document.addEventListener('DOMContentLoaded', function() {
     const btn = document.getElementById("btn_form");
     const formContainer = document.getElementById("form-container");
-    const blom = document.getElementById("bloom");
+    const bloom = document.getElementById("bloom");
     const contactForm = document.getElementById("contactForm");
     const submitBtn = document.getElementById("submit_form");
-
-    const fullName = document.getElementById('fullName');
-    const email = document.getElementById('email');
-    const phone = document.getElementById('phone');
-    const organization = document.getElementById('organization');
-    const message = document.getElementById('message');
-    const privacy = document.getElementById('privacy');
-
-    let isFormOpen = false;
     const messageContainer = document.getElementById('message-container');
 
+    // Поля формы
+    const fields = {
+        fullName: document.getElementById('fullName'),
+        email: document.getElementById('email'),
+        phone: document.getElementById('phone'),
+        organization: document.getElementById('organization'),
+        message: document.getElementById('message'),
+        privacy: document.getElementById('privacy')
+    };
+
+    let isFormOpen = false;
+
+    // Получаем ID пользователя из URL или data-атрибута
     const urlParams = new URLSearchParams(window.location.search);
-    const profileUserId = urlParams.get('id');
-    const containerUserId = formContainer ? formContainer.getAttribute('data-user-id') : null;
-    const currentUserId = profileUserId || containerUserId;
+    const currentUserId = urlParams.get('id') || (formContainer?.dataset.userId);
 
-    function showMessage(text, type = 'success') {
+    function showMessage(html, type = 'success') {
         if (!messageContainer) return;
-        messageContainer.innerHTML = text;
+        messageContainer.innerHTML = html;
         messageContainer.style.display = 'block';
-        messageContainer.style.backgroundColor = type === 'success' ? '#d4edda' : '#f8d7da';
-        messageContainer.style.color = type === 'success' ? '#155724' : '#721c24';
-        messageContainer.style.border = `1px solid ${type === 'success' ? '#c3e6cb' : '#f5c6cb'}`;
+        messageContainer.className = type === 'success' ? 'success-box' : 'error-box';
     }
 
-    if (btn) btn.addEventListener('click', () => {
-        if (!formContainer || !blom) return;
-        formContainer.classList.add('on'); formContainer.classList.remove('off');
-        blom.classList.add('on'); blom.classList.remove('off');
-        isFormOpen = true;
+    // Открытие/закрытие модального окна
+    if (btn) btn.onclick = () => {
+        formContainer?.classList.replace('off', 'on');
+        bloom?.classList.replace('off', 'on');
         document.body.style.overflow = 'hidden';
-    });
+        isFormOpen = true;
+    };
 
-    if (blom) blom.addEventListener('click', closef);
+    if (bloom) bloom.onclick = closeForm;
+    document.onkeydown = (e) => { if (e.key === 'Escape' && isFormOpen) closeForm(); };
 
-    function closef() {
-        if (!formContainer || !blom) return;
-        formContainer.classList.remove('on'); formContainer.classList.add('off');
-        blom.classList.remove('on'); blom.classList.add('off');
+    function closeForm() {
+        formContainer?.classList.replace('on', 'off');
+        bloom?.classList.replace('on', 'off');
+        document.body.style.overflow = '';
         isFormOpen = false;
-        document.body.style.overflow = 'auto';
     }
 
+    // Обработчик отправки формы
     if (contactForm) {
-        contactForm.addEventListener('submit', async function(event) {
-            event.preventDefault();
-
+        contactForm.onsubmit = async function(e) {
+            e.preventDefault();
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Отправка...';
+                submitBtn.textContent = currentUserId ? 'Сохранение...' : 'Отправка...';
             }
 
-            const formData = {
-                fullName: fullName.value,
-                email: email.value,
-                phone: phone.value,
-                organization: organization.value,
-                message: message.value
-            };
+            // Сбор данных
+            const data = Object.fromEntries(
+                Object.entries(fields)
+                    .filter(([_, el]) => el)
+                    .map(([key, el]) => [key, el.value])
+            );
 
-            let apiEndpoint = '/8/public/api/users';
-            let requestMethod = 'POST';
-
-            if (currentUserId) {
-                apiEndpoint = `/8/public/api/users/${currentUserId}`;
-                requestMethod = 'PUT';
-            }
+            // Определяем метод и endpoint
+            const isUpdate = !!currentUserId;
+            const endpoint = `/8/public/api/users${isUpdate ? '/' + currentUserId : ''}`;
+            const method = isUpdate ? 'PUT' : 'POST';
 
             try {
-                const response = await fetch(apiEndpoint, {
-                    method: requestMethod,
+                const res = await fetch(endpoint, {
+                    method,
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
+                    body: JSON.stringify(data)
                 });
+                const result = await res.json();
 
-                const result = await response.json();
-
-                if (response.ok) {
-                    if (requestMethod === 'POST') {
-                        const successHtml = `
-                            <strong>Форма успешно отправлена!</strong><br>
-                            Создан профиль! Запомните данные:<br>
+                if (res.ok) {
+                    if (!isUpdate) {
+                        // Регистрация — показываем логин/пароль
+                        const html = `
+                            <strong>✅ Регистрация успешна!</strong><br>
                             Логин: <code>${result.login}</code><br>
                             Пароль: <code>${result.password}</code><br>
-                            <a href="${result.profile_url}" style="font-weight:bold; color:#155724;">Перейти в личный профиль</a>
+                            <a href="${result.profile_url}" style="font-weight:bold">→ Перейти в профиль</a>
                         `;
-                        showMessage(successHtml, 'success');
+                        showMessage(html, 'success');
                         contactForm.reset();
                     } else {
-                        showMessage(result.message || 'Данные успешно обновлены!', 'success');
+                        showMessage(result.message || '✅ Данные обновлены!', 'success');
                     }
                 } else {
-                    if (result.errors) {
-                        showMessage(Object.values(result.errors).join('<br>'), 'error');
-                    } else {
-                        showMessage(result.message || 'Произошла ошибка сервера.', 'error');
-                    }
+                    const errors = result.errors 
+                        ? Object.values(result.errors).join('<br>') 
+                        : result.message || 'Ошибка сервера';
+                    showMessage(errors, 'error');
                 }
-            } catch (error) {
-                showMessage(`Ошибка сети: ${error.message}`, 'error');
+            } catch (err) {
+                showMessage(`🌐 Ошибка сети: ${err.message}`, 'error');
             } finally {
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.textContent = currentUserId ? 'Сохранить изменения' : 'отправить форму';
+                    submitBtn.textContent = currentUserId ? 'Сохранить изменения' : 'Отправить форму';
                 }
             }
-        });
+        };
     }
-
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isFormOpen) closef(); });
 });
