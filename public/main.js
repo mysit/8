@@ -73,3 +73,116 @@ document.addEventListener('DOMContentLoaded', function() {
             valid = false;
         } else if (!email?.value.trim()) {
             showMessage('Пожалуйста, введите email', 'error');
+            if (email) email.style.borderColor='#dc3545';
+            valid = false;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+            showMessage('Некорректный email', 'error');
+            if (email) email.style.borderColor='#dc3545';
+            valid = false;
+        } else if (!message?.value.trim()) {
+            showMessage('Пожалуйста, введите сообщение', 'error');
+            if (message) message.style.borderColor='#dc3545';
+            valid = false;
+        } else if (isRegistration && (!privacy || !privacy.checked)) {
+            showMessage('Необходимо согласие на обработку данных', 'error');
+            if (privacy) privacy.style.outline='2px solid #dc3545';
+            valid = false;
+        }
+        return valid;
+    }
+
+    async function submitForm(e) {
+        e.preventDefault();
+        
+        const isEdit = !!editModal?.dataset.userId;
+        if (!validateForm(!isEdit)) return;
+        
+        if (submitBtn) { 
+            submitBtn.disabled = true; 
+            submitBtn.textContent = isEdit ? 'Сохранение...' : 'Отправка...'; 
+        }
+
+        const data = {
+            fullName: fullName.value,
+            email: email.value,
+            phone: phone.value || '',
+            organization: organization?.value || '',
+            message: message.value,
+            privacy: privacy?.checked ? '1' : '0'
+        };
+
+        const userId = isEdit ? editModal.dataset.userId : null;
+        const endpoint = `/8/public/api/users${userId ? '/'+userId : ''}`;
+        const method = userId ? 'PUT' : 'POST';
+
+        try {
+            const res = await fetch(endpoint, {
+                method,
+                headers: { 'Content-Type':'application/json', 'X-Requested-With':'XMLHttpRequest' },
+                body: JSON.stringify(data)
+            });
+            const txt = await res.text();
+            let result;
+            try { result = JSON.parse(txt); }
+            catch (err) { throw new Error('Ошибка сервера: неверный формат ответа'); }
+
+            if (res.ok) {
+                if (!isEdit) {
+                    formContainer.innerHTML = `
+                        <div style="text-align:center;padding:30px 20px">
+                            <h3 style="margin-bottom:20px">Заявка отправлена</h3>
+                            <div style="background:#fff;padding:15px;border-radius:12px;margin-bottom:20px;text-align:left;box-shadow:0 2px 8px rgba(0,0,0,0.05)">
+                                <p style="margin:8px 0"><strong>Логин:</strong> <code>${result.login}</code></p>
+                                <p style="margin:8px 0"><strong>Пароль:</strong> <code>${result.password}</code></p>
+                            </div>
+                            <a href="${result.profile_url}" class="form_btn" style="text-decoration:none;display:inline-block">Перейти в профиль</a>
+                        </div>`;
+                    clearFormData();
+                } else {
+                    showMessage(result.message || 'Данные обновлены', 'success');
+                    setTimeout(() => {
+                        editModal.classList.remove('on');
+                        bloom.classList.remove('on');
+                        document.body.style.overflow = '';
+                        isModalOpen = false;
+                    }, 1500);
+                }
+            } else {
+                const errs = result.errors ? Object.values(result.errors).join('<br>') : (result.message || 'Ошибка');
+                showMessage(errs, 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            showMessage(`Ошибка: ${err.message}`, 'error');
+        } finally {
+            if (submitBtn) { 
+                submitBtn.disabled = false; 
+                submitBtn.textContent = isEdit ? 'Сохранить изменения' : 'отправить форму'; 
+            }
+        }
+    }
+
+    function openModal() {
+        if (!editModal) return;
+        editModal.classList.add('on');
+        bloom.classList.add('on');
+        document.body.style.overflow = 'hidden';
+        isModalOpen = true;
+    }
+    function closeModal() {
+        if (!editModal) return;
+        editModal.classList.remove('on');
+        bloom.classList.remove('on');
+        document.body.style.overflow = '';
+        isModalOpen = false;
+    }
+
+    if (btnEdit) btnEdit.onclick = openModal;
+    if (bloom) bloom.onclick = closeModal;
+    document.onkeydown = e => { if (e.key === 'Escape' && isModalOpen) closeModal(); };
+
+    loadFormData();
+    [fullName, email, phone, organization, message].forEach(f => { if (f) f.addEventListener('input', saveFormData); });
+    if (privacy) privacy.addEventListener('change', saveFormData);
+    if (contactForm) contactForm.addEventListener('submit', submitForm);
+});
