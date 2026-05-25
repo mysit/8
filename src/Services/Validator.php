@@ -23,7 +23,7 @@ class Validator {
         }
 
         // Privacy checkbox — только при регистрации
-        if (!$isUpdate && empty($data['privacy'])) {
+        if (!$isUpdate && empty($data['privacy']) && $data['privacy'] !== '1') {
             $errors['privacy'] = 'Необходимо согласие на обработку персональных данных.';
         }
 
