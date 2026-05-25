@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = document.getElementById("submit_form");
     const messageContainer = document.getElementById('message-container');
 
-    // Поля формы
     const fields = {
         fullName: document.getElementById('fullName'),
         email: document.getElementById('email'),
@@ -18,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let isFormOpen = false;
 
-    // Получаем ID пользователя из URL или data-атрибута
     const urlParams = new URLSearchParams(window.location.search);
     const currentUserId = urlParams.get('id') || (formContainer?.dataset.userId);
 
@@ -27,11 +25,9 @@ document.addEventListener('DOMContentLoaded', function() {
         messageContainer.innerHTML = html;
         messageContainer.style.display = 'block';
         messageContainer.className = type === 'success' ? 'success-box' : 'error-box';
-        // Скролл к сообщению
         messageContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    // Открытие/закрытие модального окна
     if (btn) btn.onclick = () => {
         formContainer?.classList.replace('off', 'on');
         bloom?.classList.replace('off', 'on');
@@ -49,12 +45,10 @@ document.addEventListener('DOMContentLoaded', function() {
         isFormOpen = false;
     }
 
-    // Обработчик отправки формы
     if (contactForm) {
         contactForm.onsubmit = async function(e) {
             e.preventDefault();
             
-            // Скрываем предыдущие сообщения
             if (messageContainer) messageContainer.style.display = 'none';
 
             if (submitBtn) {
@@ -62,7 +56,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 submitBtn.textContent = currentUserId ? 'Сохранение...' : 'Отправка...';
             }
 
-            // Сбор данных
             const formData = {};
             for (const [key, el] of Object.entries(fields)) {
                 if (!el) continue;
@@ -73,9 +66,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            console.log('Отправка данных:', formData);
-
-            // Определяем метод и endpoint
             const isUpdate = !!currentUserId;
             const endpoint = `/8/public/api/users${isUpdate ? '/' + currentUserId : ''}`;
             const method = isUpdate ? 'PUT' : 'POST';
@@ -93,38 +83,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 const textResponse = await res.text();
                 let result;
 
-                // Попытка распарсить JSON
                 try {
                     result = JSON.parse(textResponse);
                 } catch (e) {
                     console.error('Сервер вернул не JSON:', textResponse);
-                    throw new Error('Ошибка сервера: неверный формат ответа. Проверьте логи PHP.');
+                    throw new Error('Ошибка сервера: неверный формат ответа');
                 }
 
                 if (res.ok) {
                     if (!isUpdate) {
-                        // Регистрация — показываем логин/пароль
                         const html = `
-                            <strong>✅ Регистрация успешна!</strong><br>
+                            <strong>Регистрация успешна!</strong><br>
                             Логин: <code>${result.login}</code><br>
                             Пароль: <code>${result.password}</code><br>
-                            <a href="${result.profile_url}" target="_blank" style="font-weight:bold; color: #007bff;">→ Перейти в профиль</a>
+                            <a href="${result.profile_url}" target="_blank" style="font-weight:bold; color: #007bff;">Перейти в профиль</a>
                         `;
                         showMessage(html, 'success');
                         contactForm.reset();
                         closeForm();
                     } else {
-                        showMessage(result.message || '✅ Данные обновлены!', 'success');
+                        showMessage(result.message || 'Данные обновлены', 'success');
                     }
                 } else {
                     const errors = result.errors 
                         ? Object.values(result.errors).join('<br>') 
-                        : (result.message || 'Произошла неизвестная ошибка.');
+                        : (result.message || 'Произошла ошибка');
                     showMessage(errors, 'error');
                 }
             } catch (err) {
                 console.error(err);
-                showMessage(`⚠️ ${err.message}`, 'error');
+                showMessage(`Ошибка: ${err.message}`, 'error');
             } finally {
                 if (submitBtn) {
                     submitBtn.disabled = false;
