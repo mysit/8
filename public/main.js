@@ -51,58 +51,74 @@ document.addEventListener('DOMContentLoaded', function() {
     if (contactForm) {
         contactForm.onsubmit = async function(e) {
             e.preventDefault();
+            
+            // Сброс предыдущих ошибок
+            if (messageContainer) {
+                messageContainer.style.display = 'none';
+            }
+
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.textContent = currentUserId ? 'Сохранение...' : 'Отправка...';
             }
 
-            // Сбор данных
-            const data = Object.fromEntries(
-                Object.entries(fields)
-                    .filter(([_, el]) => el)
-                    .map(([key, el]) => {
-                        if (el.type === 'checkbox') {
-                            return [key, el.checked ? '1' : '0'];
-                        }
-                        return [key, el.value];
-                    })
-            );
+            // Сбор данных с явной обработкой чекбокса
+            const formData = {};
+            
+            if (fields.fullName) formData.fullName = fields.fullName.value.trim();
+            if (fields.email) formData.email = fields.email.value.trim();
+            if (fields.phone) formData.phone = fields.phone.value.trim();
+            if (fields.organization) formData.organization = fields.organization.value.trim();
+            if (fields.message) formData.message = fields.message.value.trim();
+            
+            // Критически важная часть: корректная отправка чекбокса
+            if (fields.privacy) {
+                formData.privacy = fields.privacy.checked ? '1' : '0';
+            } else {
+                formData.privacy = '0';
+            }
 
             // Определяем метод и endpoint
             const isUpdate = !!currentUserId;
             const endpoint = `/8/public/api/users${isUpdate ? '/' + currentUserId : ''}`;
             const method = isUpdate ? 'PUT' : 'POST';
 
+            console.log('Отправка данных:', formData); // Для отладки
+
             try {
                 const res = await fetch(endpoint, {
                     method,
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(formData)
                 });
+                
                 const result = await res.json();
+                console.log('Ответ сервера:', result);
 
                 if (res.ok) {
                     if (!isUpdate) {
                         // Регистрация — показываем логин/пароль
                         const html = `
-                            <strong>Регистрация успешна</strong><br>
+                            <strong>✅ Регистрация успешна!</strong><br>
                             Логин: <code>${result.login}</code><br>
                             Пароль: <code>${result.password}</code><br>
                             <a href="${result.profile_url}" style="font-weight:bold">→ Перейти в профиль</a>
                         `;
                         showMessage(html, 'success');
                         contactForm.reset();
+                        setTimeout(closeForm, 5000); // Закрыть через 5 сек
                     } else {
-                        showMessage(result.message || 'Данные обновлены', 'success');
+                        showMessage(result.message || '✅ Данные обновлены!', 'success');
                     }
                 } else {
                     const errors = result.errors 
                         ? Object.values(result.errors).join('<br>') 
-                        : result.message || 'Ошибка сервера';
+                        : (result.message || 'Ошибка сервера');
                     showMessage(errors, 'error');
                 }
             } catch (err) {
-                showMessage(`Ошибка сети: ${err.message}`, 'error');
+                console.error('Ошибка сети:', err);
+                showMessage(`🌐 Ошибка сети: ${err.message}`, 'error');
             } finally {
                 if (submitBtn) {
                     submitBtn.disabled = false;
