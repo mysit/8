@@ -17,10 +17,7 @@ class User {
         $stmt = $this->pdo->query("DESCRIBE users");
         $columns = $stmt->fetchAll(PDO::FETCH_COLUMN);
         foreach (['full_name', 'fullName', 'name', 'fio'] as $col) {
-            if (in_array($col, $columns)) {
-                $this->nameColumn = $col;
-                return;
-            }
+            if (in_array($col, $columns)) { $this->nameColumn = $col; return; }
         }
         $this->nameColumn = 'fio';
     }
@@ -41,32 +38,18 @@ class User {
         ];
 
         $columns = $this->getTableColumns();
-        $insertFields = [];
-        $placeholders = [];
-        $values = [];
-
+        $insertFields = []; $placeholders = []; $values = [];
         foreach ($fields as $col => $val) {
             if (in_array($col, $columns)) {
-                $insertFields[] = $col;
-                $placeholders[] = '?';
-                $values[] = $val;
+                $insertFields[] = $col; $placeholders[] = '?'; $values[] = $val;
             }
         }
-
-        $sql = sprintf("INSERT INTO users (%s) VALUES (%s)", 
-            implode(', ', $insertFields), 
-            implode(', ', $placeholders)
-        );
+        $sql = sprintf("INSERT INTO users (%s) VALUES (%s)", implode(', ', $insertFields), implode(', ', $placeholders));
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($values);
-
         $id = (int)$this->pdo->lastInsertId();
 
-        return [
-            'id' => $id,
-            'login' => $login,
-            'password' => $password
-        ];
+        return ['id' => $id, 'login' => $login, 'password' => $password];
     }
 
     public function update(int $id, array $data): bool {
@@ -77,18 +60,11 @@ class User {
             'organization' => $data['organization'] ?? '',
             'message' => $data['message']
         ];
-
         $columns = $this->getTableColumns();
-        $sets = [];
-        $values = [];
-
+        $sets = []; $values = [];
         foreach ($fields as $col => $val) {
-            if (in_array($col, $columns)) {
-                $sets[] = "$col = ?";
-                $values[] = $val;
-            }
+            if (in_array($col, $columns)) { $sets[] = "$col = ?"; $values[] = $val; }
         }
-
         $values[] = $id;
         $sql = sprintf("UPDATE users SET %s WHERE id = ?", implode(', ', $sets));
         $stmt = $this->pdo->prepare($sql);
@@ -99,10 +75,6 @@ class User {
         $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch() ?: null;
-    }
-
-    public function isOwner(int $userId): bool {
-        return isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === $userId;
     }
 
     private function getTableColumns(): array {
